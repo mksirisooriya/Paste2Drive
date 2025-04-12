@@ -1,107 +1,67 @@
-// Load previously uploaded images in the selected folder
-function loadPreviousUploads(folderId) {
-    previousUploadsSection.classList.remove('hidden');
-    previousUploadsContainer.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+// Show notification in popup
+function showPopupNotification(message, type = "info") {
+    // Create notification element if it doesn't exist
+    let notification = document.getElementById('popup-notification');
+    if (!notification) {
+      notification = document.createElement('div');
+      notification.id = 'popup-notification';
+      notification.className = 'notification';
+      document.body.appendChild(notification);
+    }
     
-    // Call the background script to get previous uploads
-    chrome.runtime.sendMessage({ 
-      action: "listFiles", 
-      folderId: folderId,
-      fileType: "image" 
-    }, (response) => {
-      if (response && response.success && response.files && response.files.length > 0) {
-        displayPreviousUploads(response.files);
-      } else {
-        previousUploadsContainer.innerHTML = '<div style="padding: 15px; text-align: center; color: #5f6368;">No previous uploads found</div>';
-      }
+    // Set message and type
+    notification.textContent = message;
+    notification.className = 'notification ' + type;
+    
+    // Show the notification
+    setTimeout(() => {
+      notification.classList.add('show');
+    }, 10);
+    
+    // Hide after delay
+    setTimeout(() => {
+      notification.classList.remove('show');
+    }, 3000);
+  }
+  
+  // Process image using utility.js function if available, otherwise provide fallback
+  function processImage(blob) {
+    // Check if we have the utility function available
+    if (typeof window.processImage === 'function') {
+      return window.processImage(blob);
+    }
+    
+    // Fallback implementation
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = () => {
+        resolve({
+          dataUrl: reader.result,
+          type: blob.type.split('/')[1] // Extract 'png', 'jpeg', etc.
+        });
+      };
     });
   }
   
-  // Display previously uploaded images
-  function displayPreviousUploads(files) {
-    previousUploadsContainer.innerHTML = '';
-    
-    // Sort files by creation time (newest first)
-    files.sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
-    
-    // Show only the 10 most recent uploads
-    const recentFiles = files.slice(0, 10);
-    
-    recentFiles.forEach(file => {
-      const uploadItem = document.createElement('div');
-      uploadItem.className = 'previous-upload-item';
-      
-      // Format the date
-      const fileDate = new Date(file.createdTime);
-      const formattedDate = fileDate.toLocaleDateString() + ' ' + fileDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      
-      // Create thumbnail or icon
-      let thumbnailContent = '';
-      if (file.thumbnailLink) {
-        thumbnailContent = `<img src="${file.thumbnailLink}" alt="${file.name}">`;
-      } else {
-        thumbnailContent = `<i class="fas fa-file-image"></i>`;
-      }
-      
-      uploadItem.innerHTML = `
-        <div class="previous-upload-thumbnail">
-          ${thumbnailContent}
-        </div>
-        <div class="previous-upload-details">
-          <div class="previous-upload-name" title="${file.name}">${file.name}</div>
-          <div class="previous-upload-date">${formattedDate}</div>
-        </div>
-        <div class="previous-upload-actions">
-          <button class="copy-link-btn" data-link="${file.webViewLink || `https://drive.google.com/file/d/${file.id}/view?usp=sharing`}">
-            Copy
-          </button>
-          <button class="view-file-btn" data-link="${file.webViewLink || `https://drive.google.com/file/d/${file.id}/view?usp=sharing`}">
-            View
-          </button>
-        </div>
-      `;
-      
-      // Add event listeners for the buttons
-      const copyBtn = uploadItem.querySelector('.copy-link-btn');
-      const viewBtn = uploadItem.querySelector('.view-file-btn');
-      
-      copyBtn.addEventListener('click', (e) => {
-        const link = e.target.dataset.link;
-        navigator.clipboard.writeText(link)
-          .then(() => {
-            showPopupNotification("Link copied to clipboard", "success");
-          })
-          .catch(err => {
-            showPopupNotification("Could not copy link to clipboard", "error");
-          });
-      });
-      
-      viewBtn.addEventListener('click', (e) => {
-        const link = e.target.dataset.link;
-        chrome.tabs.create({ url: link });
-      });
-      
-      previousUploadsContainer.appendChild(uploadItem);
-    });
-    
-    // If there are more files than we're showing
-    if (files.length > 10) {
-      const moreItem = document.createElement('div');
-      moreItem.className = 'previous-upload-item';
-      moreItem.style.justifyContent = 'center';
-      moreItem.style.color = '#4285F4';
-      moreItem.style.cursor = 'pointer';
-      moreItem.innerHTML = `<span>View all ${files.length} images in Drive</span>`;
-      
-      moreItem.addEventListener('click', () => {
-        chrome.tabs.create({ url: `https://drive.google.com/drive/folders/${currentFolderId}` });
-      });
-      
-      previousUploadsContainer.appendChild(moreItem);
+  // Generate filename using utility.js function if available, otherwise provide fallback
+  function generateFilename(fileType) {
+    // Check if we have the utility function available
+    if (typeof window.generateFilename === 'function') {
+      return window.generateFilename(fileType);
     }
+    
+    // Fallback implementation
+    return new Promise((resolve) => {
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10); // YYYY-MM-DD
+      const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, ''); // HHMMSS
+      const filename = `image_${dateStr}-${timeStr}.${fileType}`;
+      resolve(filename);
+    });
   }// Popup script for Paste2Drive extension
   
-  // DOM elements at the top of the file
+  // DOM elements
   const loginView = document.getElementById('login-view');
   const mainView = document.getElementById('main-view');
   const loadingView = document.getElementById('loading-view');
@@ -131,18 +91,21 @@ function loadPreviousUploads(folderId) {
   
   // Event listeners
   document.addEventListener('DOMContentLoaded', initializePopup);
-  loginButton.addEventListener('click', handleLogin);
-  changeAccountButton.addEventListener('click', handleChangeAccount);
-  createFolderButton.addEventListener('click', handleCreateFolder);
-  folderPath.addEventListener('click', handlePathClick);
-  openSettings.addEventListener('click', () => {
+  if (loginButton) loginButton.addEventListener('click', handleLogin);
+  if (changeAccountButton) changeAccountButton.addEventListener('click', handleChangeAccount);
+  if (createFolderButton) createFolderButton.addEventListener('click', handleCreateFolder);
+  if (folderPath) folderPath.addEventListener('click', handlePathClick);
+  if (openSettings) openSettings.addEventListener('click', () => {
     chrome.runtime.openOptionsPage();
   });
-  uploadClipboard.addEventListener('click', handleUploadFromClipboard);
-  uploadArea.addEventListener('click', () => document.getElementById('file-input').click());
-  copyLink.addEventListener('click', handleCopyLink);
-  viewFile.addEventListener('click', handleViewFile);
-  newUpload.addEventListener('click', resetUploadUI);
+  if (uploadClipboard) uploadClipboard.addEventListener('click', handleUploadFromClipboard);
+  if (uploadArea) uploadArea.addEventListener('click', () => {
+    const fileInput = document.getElementById('file-input');
+    if (fileInput) fileInput.click();
+  });
+  if (copyLink) copyLink.addEventListener('click', handleCopyLink);
+  if (viewFile) viewFile.addEventListener('click', handleViewFile);
+  if (newUpload) newUpload.addEventListener('click', resetUploadUI);
   
   // Add file input element
   const fileInput = document.createElement('input');
@@ -154,21 +117,29 @@ function loadPreviousUploads(folderId) {
   fileInput.addEventListener('change', handleFileSelect);
   
   // Add drag and drop listeners
-  uploadArea.addEventListener('dragover', handleDragOver);
-  uploadArea.addEventListener('dragleave', handleDragLeave);
-  uploadArea.addEventListener('drop', handleDrop);
+  if (uploadArea) {
+    uploadArea.addEventListener('dragover', handleDragOver);
+    uploadArea.addEventListener('dragleave', handleDragLeave);
+    uploadArea.addEventListener('drop', handleDrop);
+  }
   
   // Initialize popup
   function initializePopup() {
+    console.log('Initializing popup...');
     showView(loadingView);
+    
+    // Remove any previous error messages
+    const errorElements = document.querySelectorAll('.login-error');
+    errorElements.forEach(el => el.remove());
     
     // Check if user is authenticated
     chrome.runtime.sendMessage({ action: "checkAuth" }, (response) => {
+      console.log('Auth check response:', response);
+      
       if (response && response.isAuthenticated && response.userInfo) {
         // User is authenticated
         updateUserInfo(response.userInfo);
         showView(mainView);
-        loadFolders(currentFolderId);
         
         // Get current default folder from storage
         chrome.storage.sync.get(['defaultFolder', 'defaultFolderPath'], (result) => {
@@ -185,33 +156,68 @@ function loadPreviousUploads(folderId) {
           }
         });
       } else {
-        // User is not authenticated
+        // User is not authenticated, prompt for login
         showView(loginView);
+        
+        // Show error if there is one
+        if (response && response.error) {
+          showLoginError(response.error);
+        }
       }
     });
   }
   
+  // Show login error
+  function showLoginError(message) {
+    // Remove any existing error messages
+    const existingErrors = document.querySelectorAll('.login-error');
+    existingErrors.forEach(el => el.remove());
+    
+    // Create error message element
+    const errorMsg = document.createElement('div');
+    errorMsg.className = 'login-error';
+    errorMsg.textContent = `Authentication error: ${message}`;
+    
+    // Add to login view
+    const loginPrompt = document.querySelector('.login-prompt');
+    if (loginPrompt) {
+      loginPrompt.appendChild(errorMsg);
+    }
+  }
+  
   // Show specified view and hide others
   function showView(viewToShow) {
-    loginView.classList.add('hidden');
-    mainView.classList.add('hidden');
-    loadingView.classList.add('hidden');
+    if (loginView) loginView.classList.add('hidden');
+    if (mainView) mainView.classList.add('hidden');
+    if (loadingView) loadingView.classList.add('hidden');
     
-    viewToShow.classList.remove('hidden');
+    if (viewToShow) viewToShow.classList.remove('hidden');
   }
   
   // Handle login button click
   function handleLogin() {
+    // Remove any existing error messages
+    const existingErrors = document.querySelectorAll('.login-error');
+    existingErrors.forEach(el => el.remove());
+    
     showView(loadingView);
     
     chrome.runtime.sendMessage({ action: "authenticate" }, (response) => {
+      console.log('Authentication response:', response);
+      
       if (response && response.success && response.userInfo) {
         updateUserInfo(response.userInfo);
         showView(mainView);
         loadFolders('root');
       } else {
+        // Show error message
         showView(loginView);
-        // Could show an error message here
+        
+        if (response && response.error) {
+          showLoginError(response.error);
+        } else {
+          showLoginError("Authentication failed. Please try again.");
+        }
       }
     });
   }
@@ -231,7 +237,9 @@ function loadPreviousUploads(folderId) {
         showView(mainView);
       } else {
         showView(loginView);
-        // Could show an error message here
+        if (response && response.error) {
+          showLoginError(response.error);
+        }
       }
     });
   }
@@ -344,169 +352,24 @@ function loadPreviousUploads(folderId) {
     }
   }
   
-  // Process and upload image
-  function processAndUploadImage(blob) {
-    // Process the image (handle compression if needed)
-    processImage(blob)
-      .then(processedImage => {
-        // Generate filename
-        return generateFilename(processedImage.type)
-          .then(filename => {
-            return { 
-              imageData: processedImage.dataUrl, 
-              filename: filename 
-            };
-          });
-      })
-      .then(({ imageData, filename }) => {
-        // Get the current folder ID
-        const folderId = currentFolderId || 'root';
-        
-        // Upload to Google Drive
-        chrome.runtime.sendMessage(
-          { 
-            action: "uploadImage", 
-            imageData: imageData, 
-            folder: folderId,
-            filename: filename
-          }, 
-          (response) => {
-            if (response && response.success) {
-              // Show success UI
-              showSuccessUI(response.shareableLink, response.fileId);
-            } else {
-              // Show error
-              resetUploadUI();
-              showPopupNotification("Upload failed: " + (response && response.error ? response.error : "Unknown error"), "error");
-            }
-          }
-        );
-      })
-      .catch(error => {
-        console.error('Error processing image:', error);
-        resetUploadUI();
-        showPopupNotification("Error processing image", "error");
-      });
-  }
-  
-  // Show uploading UI
-  function showUploadingUI() {
-    // Hide the normal upload area content
-    uploadArea.innerHTML = `
-      <div class="uploading">
-        <div class="spinner"></div>
-        <p>Uploading...</p>
-      </div>
-    `;
-    
-    // Hide the result section if visible
-    resultSection.classList.add('hidden');
-  }
-  
-  // Show success UI
-  function showSuccessUI(shareableLink, fileId) {
-    // Show success animation in upload area
-    uploadArea.innerHTML = `
-      <div class="success-animation">
-        <i class="fas fa-check"></i>
-      </div>
-    `;
-    
-    // Show the result section
-    resultSection.classList.remove('hidden');
-    
-    // Set the link
-    resultLink.value = shareableLink;
-    
-    // Set the view file link
-    viewFile.onclick = () => {
-      chrome.tabs.create({ url: shareableLink });
-    };
-    
-    // Automatically copy the link to clipboard
-    navigator.clipboard.writeText(shareableLink)
-      .then(() => {
-        showPopupNotification("Link copied to clipboard", "success");
-      })
-      .catch(err => {
-        console.error('Could not copy link to clipboard:', err);
-      });
-  }
-  
-  // Reset upload UI
-  function resetUploadUI() {
-    // Reset the upload area
-    uploadArea.innerHTML = `
-      <div class="upload-prompt">
-        <i class="fas fa-image"></i>
-        <p>Drag and drop an image here<br>or</p>
-      </div>
-    `;
-    
-    // Hide the result section
-    resultSection.classList.add('hidden');
-    
-    // Clear the file input
-    fileInput.value = "";
-  }
-  
-  // Handle copy link button
-  function handleCopyLink() {
-    if (resultLink.value) {
-      navigator.clipboard.writeText(resultLink.value)
-        .then(() => {
-          showPopupNotification("Link copied to clipboard", "success");
-        })
-        .catch(err => {
-          showPopupNotification("Could not copy link to clipboard", "error");
-        });
-    }
-  }
-  
-  // Handle view file button
-  function handleViewFile() {
-    if (resultLink.value) {
-      chrome.tabs.create({ url: resultLink.value });
-    }
-  }
-  
-  // Show notification in popup
-  function showPopupNotification(message, type = "info") {
-    // Create notification element if it doesn't exist
-    let notification = document.getElementById('popup-notification');
-    if (!notification) {
-      notification = document.createElement('div');
-      notification.id = 'popup-notification';
-      notification.className = 'notification';
-      document.body.appendChild(notification);
-    }
-    
-    // Set message and type
-    notification.textContent = message;
-    notification.className = 'notification ' + type;
-    
-    // Show the notification
-    setTimeout(() => {
-      notification.classList.add('show');
-    }, 10);
-    
-    // Hide after delay
-    setTimeout(() => {
-      notification.classList.remove('show');
-    }, 3000);
-  }
-  
   // Update user info in the UI
   function updateUserInfo(userInfo) {
-    userName.textContent = userInfo.name || 'Google User';
-    userEmail.textContent = userInfo.email || '';
+    if (!userInfo) return;
     
-    if (userInfo.picture) {
+    // Use the full name if available, otherwise use the email or a default
+    const displayName = userInfo.name || (userInfo.email ? userInfo.email.split('@')[0] : 'Google User');
+    
+    if (userName) userName.textContent = displayName;
+    if (userEmail) userEmail.textContent = userInfo.email || '';
+    
+    if (userInfo.picture && userAvatar) {
       userAvatar.src = userInfo.picture;
-    } else {
+      userAvatar.style.display = 'block';
+      userAvatar.textContent = '';
+    } else if (userAvatar) {
       // Use the first letter of the name as avatar
       userAvatar.src = '';
-      const firstLetter = (userInfo.name || 'U').charAt(0).toUpperCase();
+      const firstLetter = (displayName || 'U').charAt(0).toUpperCase();
       userAvatar.style.backgroundColor = getColorFromLetter(firstLetter);
       userAvatar.style.color = 'white';
       userAvatar.style.fontWeight = 'bold';
@@ -515,6 +378,13 @@ function loadPreviousUploads(folderId) {
       userAvatar.style.alignItems = 'center';
       userAvatar.textContent = firstLetter;
     }
+    
+    // Save this info to storage for future use
+    chrome.storage.sync.set({ 
+      userName: displayName,
+      userEmail: userInfo.email || '',
+      userPicture: userInfo.picture || ''
+    });
   }
   
   // Generate a color from a letter
@@ -531,20 +401,26 @@ function loadPreviousUploads(folderId) {
   
   // Load folders from Google Drive
   function loadFolders(folderId) {
+    if (!folderBrowser) return;
+    
     // Show loading state
     folderBrowser.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
     
     chrome.runtime.sendMessage({ action: "listFolders", parent: folderId }, (response) => {
-      if (response && response.success && response.folders) {
-        displayFolders(response.folders);
+      if (response && response.success) {
+        displayFolders(response.folders || [], response.files || []);
       } else {
-        folderBrowser.innerHTML = '<div style="padding: 15px; text-align: center; color: #5f6368;">Could not load folders</div>';
+        if (folderBrowser) {
+          folderBrowser.innerHTML = '<div style="padding: 15px; text-align: center; color: #5f6368;">Could not load items</div>';
+        }
       }
     });
   }
   
   // Display folders in the UI
-  function displayFolders(folders) {
+  function displayFolders(folders, files = []) {
+    if (!folderBrowser) return;
+    
     folderBrowser.innerHTML = '';
     
     // Always add a special option to select the current folder
@@ -593,29 +469,78 @@ function loadPreviousUploads(folderId) {
       folderBrowser.appendChild(backItem);
     }
     
-    // Show message if no folders
-    if (folders.length === 0) {
-      const noFolders = document.createElement('div');
-      noFolders.style.padding = '15px';
-      noFolders.style.textAlign = 'center';
-      noFolders.style.color = '#5f6368';
-      noFolders.textContent = 'No folders found';
-      folderBrowser.appendChild(noFolders);
+    // Add folders with special folder icon
+    if (folders && folders.length > 0) {
+      folders.forEach(folder => {
+        const folderItem = document.createElement('div');
+        folderItem.className = 'folder-item';
+        folderItem.innerHTML = `
+          <i class="fas fa-folder"></i>
+          <span>${folder.name}</span>
+        `;
+        folderItem.addEventListener('click', () => {
+          navigateToFolder(folder.id, folder.name);
+        });
+        folderBrowser.appendChild(folderItem);
+      });
     }
     
-    // Add folders
-    folders.forEach(folder => {
-      const folderItem = document.createElement('div');
-      folderItem.className = 'folder-item';
-      folderItem.innerHTML = `
-        <i class="fas fa-folder"></i>
-        <span>${folder.name}</span>
-      `;
-      folderItem.addEventListener('click', () => {
-        navigateToFolder(folder.id, folder.name);
+    // Add files with appropriate icons
+    if (files && files.length > 0) {
+      files.forEach(file => {
+        const fileItem = document.createElement('div');
+        fileItem.className = 'folder-item file-item';
+        
+        // Determine icon based on mime type
+        let iconHtml = '';
+        if (file.mimeType && file.mimeType.startsWith('image/')) {
+          iconHtml = '<i class="fas fa-file-image" style="color: #4285F4;"></i>';
+        } else if (file.mimeType && file.mimeType.startsWith('video/')) {
+          iconHtml = '<i class="fas fa-file-video" style="color: #EA4335;"></i>';
+        } else if (file.mimeType && file.mimeType.startsWith('audio/')) {
+          iconHtml = '<i class="fas fa-file-audio" style="color: #FBBC05;"></i>';
+        } else if (file.mimeType && file.mimeType.includes('spreadsheet')) {
+          iconHtml = '<i class="fas fa-file-excel" style="color: #0F9D58;"></i>';
+        } else if (file.mimeType && file.mimeType.includes('document')) {
+          iconHtml = '<i class="fas fa-file-word" style="color: #4285F4;"></i>';
+        } else if (file.mimeType && file.mimeType.includes('presentation')) {
+          iconHtml = '<i class="fas fa-file-powerpoint" style="color: #F4B400;"></i>';
+        } else if (file.mimeType && file.mimeType.includes('pdf')) {
+          iconHtml = '<i class="fas fa-file-pdf" style="color: #DB4437;"></i>';
+        } else {
+          iconHtml = '<i class="fas fa-file"></i>';
+        }
+        
+        fileItem.innerHTML = `
+          ${iconHtml}
+          <span>${file.name}</span>
+        `;
+        
+        fileItem.addEventListener('click', () => {
+          // Copy link to clipboard
+          const shareableLink = file.webViewLink || `https://drive.google.com/file/d/${file.id}/view?usp=sharing`;
+          navigator.clipboard.writeText(shareableLink)
+            .then(() => {
+              showPopupNotification("Link copied to clipboard", "success");
+            })
+            .catch(err => {
+              showPopupNotification("Could not copy link to clipboard", "error");
+            });
+        });
+        
+        folderBrowser.appendChild(fileItem);
       });
-      folderBrowser.appendChild(folderItem);
-    });
+    }
+    
+    // Show message if no folders or files found
+    if ((!folders || folders.length === 0) && (!files || files.length === 0)) {
+      const noItemsMessage = document.createElement('div');
+      noItemsMessage.style.padding = '15px';
+      noItemsMessage.style.textAlign = 'center';
+      noItemsMessage.style.color = '#5f6368';
+      noItemsMessage.textContent = 'No items found';
+      folderBrowser.appendChild(noItemsMessage);
+    }
     
     // If this is the current default folder, also load previous uploads
     chrome.storage.sync.get(['defaultFolder'], (result) => {
@@ -646,13 +571,14 @@ function loadPreviousUploads(folderId) {
   
   // Update the folder path display
   function updatePathDisplay() {
+    if (!folderPath) return;
+    
     folderPath.innerHTML = '';
     
     pathHistory.forEach((folder, index) => {
       const pathItem = document.createElement('div');
       pathItem.className = 'path-item';
       pathItem.innerHTML = `<span data-id="${folder.id}">${folder.name}</span>`;
-      folderPath.appendChild(pathItem);
       
       // Add click event to navigate to this path
       pathItem.addEventListener('click', () => {
@@ -664,6 +590,8 @@ function loadPreviousUploads(folderId) {
           loadFolders(folder.id);
         }
       });
+      
+      folderPath.appendChild(pathItem);
     });
   }
   
@@ -679,24 +607,29 @@ function loadPreviousUploads(folderId) {
   function handlePathClick(event) {
     const pathItem = event.target.closest('.path-item');
     if (pathItem) {
-      const folderId = pathItem.querySelector('span').dataset.id;
-      // Find the index of this folder in the path history
-      const index = pathHistory.findIndex(item => item.id === folderId);
-      if (index >= 0) {
-        currentFolderId = folderId;
-        pathHistory = pathHistory.slice(0, index + 1);
-        updatePathDisplay();
-        loadFolders(folderId);
+      const spanElement = pathItem.querySelector('span');
+      if (spanElement && spanElement.dataset.id) {
+        const folderId = spanElement.dataset.id;
+        // Find the index of this folder in the path history
+        const index = pathHistory.findIndex(item => item.id === folderId);
+        if (index >= 0) {
+          currentFolderId = folderId;
+          pathHistory = pathHistory.slice(0, index + 1);
+          updatePathDisplay();
+          loadFolders(folderId);
+        }
       }
     }
   }
   
   // Handle create folder button click
   function handleCreateFolder() {
+    if (!newFolderName) return;
+    
     const folderName = newFolderName.value.trim();
     if (folderName) {
       // Disable the button and input
-      createFolderButton.disabled = true;
+      if (createFolderButton) createFolderButton.disabled = true;
       newFolderName.disabled = true;
       
       chrome.runtime.sendMessage(
@@ -707,7 +640,7 @@ function loadPreviousUploads(folderId) {
         }, 
         (response) => {
           // Re-enable the button and input
-          createFolderButton.disabled = false;
+          if (createFolderButton) createFolderButton.disabled = false;
           newFolderName.disabled = false;
           
           if (response && response.success && response.folder) {
@@ -715,11 +648,277 @@ function loadPreviousUploads(folderId) {
             newFolderName.value = '';
             // Reload the folders to show the new one
             loadFolders(currentFolderId);
+            // Show success notification
+            showPopupNotification("Folder created successfully", "success");
           } else {
-            // Could show an error message here
+            // Show error message
+            showPopupNotification("Failed to create folder", "error");
             console.error('Failed to create folder:', response ? response.error : 'Unknown error');
           }
         }
       );
+    }
+  }
+  
+  // Process and upload image
+  function processAndUploadImage(blob) {
+    // Process the image (handle compression if needed)
+    processImage(blob)
+      .then(processedImage => {
+        // Generate filename
+        return generateFilename(processedImage.type)
+          .then(filename => {
+            return { 
+              imageData: processedImage.dataUrl, 
+              filename: filename 
+            };
+          });
+      })
+      .then(({ imageData, filename }) => {
+        // Get the current folder ID
+        const folderId = currentFolderId || 'root';
+        
+        // Upload to Google Drive
+        chrome.runtime.sendMessage(
+          { 
+            action: "uploadImage", 
+            imageData: imageData, 
+            folder: folderId,
+            filename: filename
+          }, 
+          (response) => {
+            if (response && response.success) {
+              // Show success UI
+              showSuccessUI(response.shareableLink, response.fileId);
+              // Reload the folder contents to show the new file
+              loadFolders(currentFolderId);
+            } else {
+              // Show error
+              resetUploadUI();
+              showPopupNotification("Upload failed: " + (response && response.error ? response.error : "Unknown error"), "error");
+            }
+          }
+        );
+      })
+      .catch(error => {
+        console.error('Error processing image:', error);
+        resetUploadUI();
+        showPopupNotification("Error processing image", "error");
+      });
+  }
+  
+  // Show uploading UI
+  function showUploadingUI() {
+    if (!uploadArea) return;
+    
+    // Hide the normal upload area content
+    uploadArea.innerHTML = `
+      <div class="uploading">
+        <div class="spinner"></div>
+        <p>Uploading...</p>
+      </div>
+    `;
+    
+    // Hide the result section if visible
+    if (resultSection) resultSection.classList.add('hidden');
+  }
+  
+  // Show success UI
+  function showSuccessUI(shareableLink, fileId) {
+    if (!uploadArea || !resultSection || !resultLink) return;
+    
+    // Show success animation in upload area
+    uploadArea.innerHTML = `
+      <div class="success-animation">
+        <i class="fas fa-check"></i>
+      </div>
+    `;
+    
+    // Show the result section
+    resultSection.classList.remove('hidden');
+    
+    // Set the link
+    resultLink.value = shareableLink;
+    
+    // Set the view file link
+    if (viewFile) {
+      viewFile.onclick = () => {
+        chrome.tabs.create({ url: shareableLink });
+      };
+    }
+    
+    // Automatically copy the link to clipboard
+    navigator.clipboard.writeText(shareableLink)
+      .then(() => {
+        showPopupNotification("Link copied to clipboard", "success");
+      })
+      .catch(err => {
+        console.error('Could not copy link to clipboard:', err);
+      });
+  }
+  
+  // Reset upload UI
+  function resetUploadUI() {
+    if (!uploadArea) return;
+    
+    // Reset the upload area
+    uploadArea.innerHTML = `
+      <div class="upload-prompt">
+        <i class="fas fa-image"></i>
+        <p>Drag and drop an image here<br>or click to select a file</p>
+      </div>
+    `;
+    
+    // Hide the result section
+    if (resultSection) resultSection.classList.add('hidden');
+    
+    // Clear the file input
+    if (fileInput) fileInput.value = "";
+  }
+  
+  // Handle copy link button
+  function handleCopyLink() {
+    if (resultLink && resultLink.value) {
+      navigator.clipboard.writeText(resultLink.value)
+        .then(() => {
+          showPopupNotification("Link copied to clipboard", "success");
+        })
+        .catch(err => {
+          showPopupNotification("Could not copy link to clipboard", "error");
+        });
+    }
+  }
+  
+  // Handle view file button
+  function handleViewFile() {
+    if (resultLink && resultLink.value) {
+      chrome.tabs.create({ url: resultLink.value });
+    }
+  }
+  
+  // Load previously uploaded images in the selected folder
+  function loadPreviousUploads(folderId) {
+    if (!previousUploadsSection || !previousUploadsContainer) return;
+    
+    previousUploadsSection.classList.remove('hidden');
+    previousUploadsContainer.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+    
+    // Call the background script to get previous uploads
+    chrome.runtime.sendMessage({ 
+      action: "listFiles", 
+      folderId: folderId,
+      fileType: "image" 
+    }, (response) => {
+      if (response && response.success && response.files && response.files.length > 0) {
+        displayPreviousUploads(response.files);
+      } else {
+        previousUploadsContainer.innerHTML = '<div style="padding: 15px; text-align: center; color: #5f6368;">No previous uploads found</div>';
+      }
+    });
+  }
+  
+  // Display previously uploaded images
+  function displayPreviousUploads(files) {
+    if (!previousUploadsContainer) return;
+    
+    previousUploadsContainer.innerHTML = '';
+    
+    if (!files || files.length === 0) {
+      previousUploadsContainer.innerHTML = '<div style="padding: 15px; text-align: center; color: #5f6368;">No previous uploads found</div>';
+      return;
+    }
+    
+    // Sort files by creation time (newest first)
+    files.sort((a, b) => {
+      if (!a.createdTime) return 1;
+      if (!b.createdTime) return -1;
+      return new Date(b.createdTime) - new Date(a.createdTime);
+    });
+    
+    // Show only the 10 most recent uploads
+    const recentFiles = files.slice(0, 10);
+    
+    recentFiles.forEach(file => {
+      const uploadItem = document.createElement('div');
+      uploadItem.className = 'previous-upload-item';
+      
+      // Format the date
+      let formattedDate = 'Unknown date';
+      if (file.createdTime) {
+        const fileDate = new Date(file.createdTime);
+        formattedDate = fileDate.toLocaleDateString() + ' ' + fileDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
+      
+      // Create thumbnail or icon
+      let thumbnailContent = '';
+      if (file.thumbnailLink) {
+        thumbnailContent = `<img src="${file.thumbnailLink}" alt="${file.name}">`;
+      } else {
+        thumbnailContent = `<i class="fas fa-file-image"></i>`;
+      }
+      
+      uploadItem.innerHTML = `
+        <div class="previous-upload-thumbnail">
+          ${thumbnailContent}
+        </div>
+        <div class="previous-upload-details">
+          <div class="previous-upload-name" title="${file.name}">${file.name}</div>
+          <div class="previous-upload-date">${formattedDate}</div>
+        </div>
+        <div class="previous-upload-actions">
+          <button class="copy-link-btn" data-link="${file.webViewLink || `https://drive.google.com/file/d/${file.id}/view?usp=sharing`}">
+            Copy
+          </button>
+          <button class="view-file-btn" data-link="${file.webViewLink || `https://drive.google.com/file/d/${file.id}/view?usp=sharing`}">
+            View
+          </button>
+        </div>
+      `;
+      
+      // Add event listeners for the buttons
+      const copyBtn = uploadItem.querySelector('.copy-link-btn');
+      const viewBtn = uploadItem.querySelector('.view-file-btn');
+      
+      if (copyBtn) {
+        copyBtn.addEventListener('click', (e) => {
+          const link = e.target.dataset.link;
+          if (link) {
+            navigator.clipboard.writeText(link)
+              .then(() => {
+                showPopupNotification("Link copied to clipboard", "success");
+              })
+              .catch(err => {
+                showPopupNotification("Could not copy link to clipboard", "error");
+              });
+          }
+        });
+      }
+      
+      if (viewBtn) {
+        viewBtn.addEventListener('click', (e) => {
+          const link = e.target.dataset.link;
+          if (link) {
+            chrome.tabs.create({ url: link });
+          }
+        });
+      }
+      
+      previousUploadsContainer.appendChild(uploadItem);
+    });
+    
+    // If there are more files than we're showing
+    if (files.length > 10) {
+      const moreItem = document.createElement('div');
+      moreItem.className = 'previous-upload-item';
+      moreItem.style.justifyContent = 'center';
+      moreItem.style.color = '#4285F4';
+      moreItem.style.cursor = 'pointer';
+      moreItem.innerHTML = `<span>View all ${files.length} images in Drive</span>`;
+      
+      moreItem.addEventListener('click', () => {
+        chrome.tabs.create({ url: `https://drive.google.com/drive/folders/${currentFolderId}` });
+      });
+      
+      previousUploadsContainer.appendChild(moreItem);
     }
   }

@@ -84,143 +84,6 @@
   
   .previous-upload-actions button:hover {
     background-color: #e8f0fe;
-  }#popup-notification {
-    position: fixed;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%) translateY(-40px);
-    padding: 10px 15px;
-    background-color: #4285F4;
-    color: white;
-    border-radius: 4px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    z-index: 9999;
-    transition: transform 0.3s ease-out;
-    font-size: 14px;
-    text-align: center;
-    max-width: 80%;
-  }
-  
-  #popup-notification.show {
-    transform: translateX(-50%) translateY(0);
-  }
-  
-  #popup-notification.success {
-    background-color: #0f9d58;
-  }
-  
-  #popup-notification.error {
-    background-color: #db4437;
-  }
-  
-  #popup-notification.warning {
-    background-color: #f4b400;
-  }/* Styles for upload area and result section */
-  .upload-area {
-    background-color: white;
-    border: 2px dashed #dadce0;
-    border-radius: 5px;
-    padding: 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.2s, background-color 0.2s;
-    min-height: 80px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .upload-area:hover, .upload-area.drag-over {
-    border-color: #4285F4;
-    background-color: #f0f7ff;
-  }
-  
-  .upload-prompt {
-    color: #5f6368;
-  }
-  
-  .upload-prompt i {
-    font-size: 24px;
-    margin-bottom: 8px;
-    color: #4285F4;
-  }
-  
-  .upload-prompt p {
-    margin: 0;
-    font-size: 13px;
-  }
-  
-  .link-container {
-    display: flex;
-    margin-bottom: 10px;
-  }
-  
-  .link-container input {
-    flex-grow: 1;
-    padding: 8px 10px;
-    border: 1px solid #dadce0;
-    border-right: none;
-    border-radius: 4px 0 0 4px;
-    font-size: 12px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  
-  .link-container button {
-    padding: 8px 12px;
-    border-radius: 0 4px 4px 0;
-  }
-  
-  .link-actions {
-    display: flex;
-    justify-content: space-between;
-  }
-  
-  button.small {
-    font-size: 12px;
-    padding: 5px 10px;
-  }
-  
-  /* Uploading animation */
-  .uploading {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-  }
-  
-  .uploading .spinner {
-    margin-bottom: 10px;
-  }
-  
-  .uploading p {
-    margin: 0;
-    color: #4285F4;
-  }
-  
-  /* Success animation */
-  .success-animation {
-    width: 40px;
-    height: 40px;
-    margin: 0 auto;
-    border-radius: 50%;
-    background-color: #4CAF50;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    animation: scale-up 0.3s ease-in-out;
-  }
-  
-  .success-animation i {
-    color: white;
-    font-size: 20px;
-  }
-  
-  @keyframes scale-up {
-    0% { transform: scale(0); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
   }/* Styles for Paste2Drive popup */
   
   body {
@@ -372,15 +235,18 @@
   .folder-item.selected {
     background-color: #e8f0fe;
     color: #1967d2;
+    font-weight: bold;
+    border-left: 4px solid #1967d2;
+    padding-left: 8px; /* Compensate for the border */
+  }
+  
+  .folder-item.selected i {
+    color: #1967d2;
   }
   
   .folder-item i {
     margin-right: 8px;
     color: #5f6368;
-  }
-  
-  .folder-item.selected i {
-    color: #1967d2;
   }
   
   .folder-path {
@@ -434,6 +300,16 @@
     color: #5f6368;
   }
   
+  .login-error {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #fce8e6;
+    color: #c5221f;
+    border-radius: 4px;
+    font-size: 13px;
+    text-align: center;
+  }
+  
   .shortcut-info {
     margin-top: 10px;
     padding: 10px;
@@ -467,101 +343,156 @@
     display: none;
   }
   
-  .notification {
+  #popup-notification {
     position: fixed;
     top: 10px;
-    right: 10px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-40px);
     padding: 10px 15px;
     background-color: #4285F4;
     color: white;
     border-radius: 4px;
-    z-index: 1000;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    opacity: 0;
-    transform: translateY(-20px);
-    transition: opacity 0.3s, transform 0.3s;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    z-index: 9999;
+    transition: transform 0.3s ease-out;
+    font-size: 14px;
+    text-align: center;
+    max-width: 80%;
   }
   
-  .notification.show {
-    opacity: 1;
-    transform: translateY(0);
+  #popup-notification.show {
+    transform: translateX(-50%) translateY(0);
   }
   
-  .notification.success {
+  #popup-notification.success {
     background-color: #0f9d58;
   }
   
-  .notification.error {
+  #popup-notification.error {
     background-color: #db4437;
   }
   
-  .notification.warning {
+  #popup-notification.warning {
     background-color: #f4b400;
   }
   
-  /* Style for the settings section */
-  .settings-section {
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid #dadce0;
+  /* Styles for upload area and result section */
+  .upload-area {
+    background-color: white;
+    border: 2px dashed #dadce0;
+    border-radius: 5px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s;
+    min-height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
   
-  .setting-item {
+  .upload-area:hover, .upload-area.drag-over {
+    border-color: #4285F4;
+    background-color: #f0f7ff;
+  }
+  
+  .upload-prompt {
+    color: #5f6368;
+  }
+  
+  .upload-prompt i {
+    font-size: 24px;
+    margin-bottom: 8px;
+    color: #4285F4;
+  }
+  
+  .upload-prompt p {
+    margin: 0;
+    font-size: 13px;
+  }
+  
+  .link-container {
     display: flex;
-    align-items: center;
     margin-bottom: 10px;
   }
   
-  .setting-item label {
+  .link-container input {
     flex-grow: 1;
+    padding: 8px 10px;
+    border: 1px solid #dadce0;
+    border-right: none;
+    border-radius: 4px 0 0 4px;
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   
-  /* Toggle switch styling */
-  .switch {
-    position: relative;
-    display: inline-block;
+  .link-container button {
+    padding: 8px 12px;
+    border-radius: 0 4px 4px 0;
+  }
+  
+  .link-actions {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  button.small {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+  
+  /* Uploading animation */
+  .uploading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+  
+  .uploading .spinner {
+    margin-bottom: 10px;
+  }
+  
+  .uploading p {
+    margin: 0;
+    color: #4285F4;
+  }
+  
+  /* Success animation */
+  .success-animation {
     width: 40px;
-    height: 20px;
-  }
-  
-  .switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-  
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: .3s;
-    border-radius: 20px;
-  }
-  
-  .slider:before {
-    position: absolute;
-    content: "";
-    height: 16px;
-    width: 16px;
-    left: 2px;
-    bottom: 2px;
-    background-color: white;
-    transition: .3s;
+    height: 40px;
+    margin: 0 auto;
     border-radius: 50%;
+    background-color: #4CAF50;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: scale-up 0.3s ease-in-out;
   }
   
-  input:checked + .slider {
-    background-color: #4285F4;
+  .success-animation i {
+    color: white;
+    font-size: 20px;
   }
   
-  input:focus + .slider {
-    box-shadow: 0 0 1px #4285F4;
+  @keyframes scale-up {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
   }
   
-  input:checked + .slider:before {
-    transform: translateX(20px);
+  /* File item styling */
+  .file-item {
+    cursor: pointer;
+  }
+  
+  .file-item:hover {
+    background-color: #f1f3f4;
+  }
+  
+  .file-item i {
+    margin-right: 8px;
   }
