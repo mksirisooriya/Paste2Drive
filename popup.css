@@ -1,4 +1,90 @@
-#popup-notification {
+/* Previous uploads styling */
+.previous-uploads-container {
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: white;
+    border-radius: 5px;
+    padding: 5px 0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+  
+  .previous-upload-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid #f1f3f4;
+    transition: background-color 0.2s;
+  }
+  
+  .previous-upload-item:hover {
+    background-color: #f8f9fa;
+  }
+  
+  .previous-upload-item:last-child {
+    border-bottom: none;
+  }
+  
+  .previous-upload-thumbnail {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: #f1f3f4;
+    margin-right: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .previous-upload-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .previous-upload-thumbnail i {
+    color: #5f6368;
+    font-size: 18px;
+  }
+  
+  .previous-upload-details {
+    flex-grow: 1;
+    min-width: 0; /* Allows text overflow to work */
+  }
+  
+  .previous-upload-name {
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #202124;
+  }
+  
+  .previous-upload-date {
+    font-size: 11px;
+    color: #5f6368;
+    margin-top: 2px;
+  }
+  
+  .previous-upload-actions {
+    display: flex;
+    gap: 5px;
+  }
+  
+  .previous-upload-actions button {
+    padding: 4px 8px;
+    font-size: 11px;
+    color: #4285F4;
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  
+  .previous-upload-actions button:hover {
+    background-color: #e8f0fe;
+  }#popup-notification {
     position: fixed;
     top: 10px;
     left: 50%;

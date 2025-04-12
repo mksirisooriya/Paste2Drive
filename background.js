@@ -1,7 +1,42 @@
-// Background script for Paste2Drive extension
-
-// Initialize extension when installed or updated
-chrome.runtime.onInstalled.addListener(() => {
+// List files in a Google Drive folder
+function listDriveFiles(folderId, fileType, sendResponse) {
+    chrome.identity.getAuthToken({ interactive: false }, (token) => {
+      if (chrome.runtime.lastError || !token) {
+        sendResponse({ success: false, error: 'Not authenticated' });
+        return;
+      }
+      
+      // Build query based on folder ID and file type
+      let query = `"${folderId}" in parents and trashed=false`;
+      
+      // Add file type filter if specified
+      if (fileType === 'image') {
+        query += ` and (mimeType contains 'image/')`;
+      }
+      
+      // Request fields we need for display
+      const fields = 'files(id,name,mimeType,webViewLink,thumbnailLink,createdTime)';
+      
+      fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=${encodeURIComponent(fields)}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.files) {
+          sendResponse({ success: true, files: data.files });
+        } else {
+          sendResponse({ success: false, error: 'No files found' });
+        }
+      })
+      .catch(error => {
+        console.error('Error listing files:', error);
+        sendResponse({ success: false, error: error.message });
+      });
+    });
+  }// Background script for Paste2Drive extension
+  
+  // Initialize extension when installed or updated
+  chrome.runtime.onInstalled.addListener(() => {
     // Create context menu items
     chrome.contextMenus.create({
       id: "paste2drive",
@@ -48,6 +83,10 @@ chrome.runtime.onInstalled.addListener(() => {
     }
     else if (message.action === "listFolders") {
       listDriveFolders(message.parent || 'root', sendResponse);
+      return true;
+    }
+    else if (message.action === "listFiles") {
+      listDriveFiles(message.folderId, message.fileType, sendResponse);
       return true;
     }
     else if (message.action === "createFolder") {

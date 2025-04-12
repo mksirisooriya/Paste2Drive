@@ -1,127 +1,137 @@
-<!DOCTYPE html>
+<!-- Previous uploads section (hidden initially) -->
+<div id="previous-uploads-section" class="section hidden">
+    <div class="section-title">
+      <i class="fas fa-history"></i> Previous Uploads
+    </div>
+    <div id="previous-uploads-container" class="previous-uploads-container">
+      <div class="loading">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </div><!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Paste2Drive</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <link rel="stylesheet" href="popup.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paste2Drive</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <div class="header">
-    <img src="images/icon48.png" alt="Paste2Drive Logo">
-    <h1>Paste2Drive</h1>
-  </div>
-  
-  <!-- Login view (shown when not authenticated) -->
-  <div id="login-view" class="hidden">
-    <div class="login-prompt">
-      <p>Please login to your Google Drive account to use Paste2Drive</p>
-      <button id="login-button"><i class="fab fa-google"></i> Sign in with Google</button>
+<div class="header">
+<img src="images/icon48.png" alt="Paste2Drive Logo">
+<h1>Paste2Drive</h1>
+</div>
+
+<!-- Login view (shown when not authenticated) -->
+<div id="login-view" class="hidden">
+<div class="login-prompt">
+  <p>Please login to your Google Drive account to use Paste2Drive</p>
+  <button id="login-button"><i class="fab fa-google"></i> Sign in with Google</button>
+</div>
+</div>
+
+<!-- Loading view -->
+<div id="loading-view" class="hidden">
+<div class="loading">
+  <div class="spinner"></div>
+</div>
+</div>
+
+<!-- Main view (shown when authenticated) -->
+<div id="main-view" class="hidden">
+<div class="content">
+  <!-- Account section -->
+  <div class="section">
+    <div class="section-title">
+      <i class="fas fa-user-circle"></i> Account
+    </div>
+    <div class="account-info">
+      <div class="avatar">
+        <img id="user-avatar" src="" alt="User Avatar">
+      </div>
+      <div class="account-details">
+        <div id="user-name" class="account-name">User Name</div>
+        <div id="user-email" class="account-email">user@example.com</div>
+      </div>
+      <button id="change-account-button" class="secondary">Change</button>
     </div>
   </div>
   
-  <!-- Loading view -->
-  <div id="loading-view" class="hidden">
-    <div class="loading">
-      <div class="spinner"></div>
+  <!-- Folder selection section -->
+  <div class="section">
+    <div class="section-title">
+      <i class="fas fa-folder"></i> Save to Folder
+    </div>
+    <div id="folder-path" class="folder-path">
+      <div class="path-item"><span data-id="root">My Drive</span></div>
+    </div>
+    <div id="folder-browser" class="folder-browser">
+      <!-- Folders will be populated here -->
+      <div class="loading">
+        <div class="spinner"></div>
+      </div>
+    </div>
+    <div class="new-folder">
+      <input id="new-folder-name" type="text" placeholder="New folder name">
+      <button id="create-folder-button" class="secondary">Create</button>
     </div>
   </div>
   
-  <!-- Main view (shown when authenticated) -->
-  <div id="main-view" class="hidden">
-    <div class="content">
-      <!-- Account section -->
-      <div class="section">
-        <div class="section-title">
-          <i class="fas fa-user-circle"></i> Account
-        </div>
-        <div class="account-info">
-          <div class="avatar">
-            <img id="user-avatar" src="" alt="User Avatar">
-          </div>
-          <div class="account-details">
-            <div id="user-name" class="account-name">User Name</div>
-            <div id="user-email" class="account-email">user@example.com</div>
-          </div>
-          <button id="change-account-button" class="secondary">Change</button>
-        </div>
+  <!-- Upload section with drag & drop -->
+  <div class="section">
+    <div class="section-title">
+      <i class="fas fa-upload"></i> Upload Image
+    </div>
+    <div id="upload-area" class="upload-area">
+      <div class="upload-prompt">
+        <i class="fas fa-image"></i>
+        <p>Drag and drop an image here<br>or click to select a file</p>
       </div>
-      
-      <!-- Folder selection section -->
-      <div class="section">
-        <div class="section-title">
-          <i class="fas fa-folder"></i> Save to Folder
-        </div>
-        <div id="folder-path" class="folder-path">
-          <div class="path-item"><span data-id="root">My Drive</span></div>
-        </div>
-        <div id="folder-browser" class="folder-browser">
-          <!-- Folders will be populated here -->
-          <div class="loading">
-            <div class="spinner"></div>
-          </div>
-        </div>
-        <div class="new-folder">
-          <input id="new-folder-name" type="text" placeholder="New folder name">
-          <button id="create-folder-button" class="secondary">Create</button>
-        </div>
+    </div>
+    <div class="button-group" style="justify-content: space-between; margin-top: 10px;">
+      <button id="open-settings" class="secondary">
+        <i class="fas fa-cog"></i> Settings
+      </button>
+      <button id="upload-clipboard" class="primary">
+        <i class="fas fa-clipboard"></i> Upload Clipboard
+      </button>
+    </div>
+  </div>
+  
+  <!-- Result section (hidden initially) -->
+  <div id="result-section" class="section hidden">
+    <div class="section-title">
+      <i class="fas fa-check-circle"></i> Upload Result
+    </div>
+    <div class="result-content">
+      <div class="link-container">
+        <input id="result-link" type="text" readonly>
+        <button id="copy-link" class="secondary" title="Copy to clipboard">
+          <i class="fas fa-copy"></i>
+        </button>
       </div>
-      
-      <!-- Upload section with drag & drop -->
-      <div class="section">
-        <div class="section-title">
-          <i class="fas fa-upload"></i> Upload Image
-        </div>
-        <div id="upload-area" class="upload-area">
-          <div class="upload-prompt">
-            <i class="fas fa-image"></i>
-            <p>Drag and drop an image here<br>or click to select a file</p>
-          </div>
-        </div>
-        <div class="button-group" style="justify-content: space-between; margin-top: 10px;">
-          <button id="open-settings" class="secondary">
-            <i class="fas fa-cog"></i> Settings
-          </button>
-          <button id="upload-clipboard" class="primary">
-            <i class="fas fa-clipboard"></i> Upload Clipboard
-          </button>
-        </div>
-      </div>
-      
-      <!-- Result section (hidden initially) -->
-      <div id="result-section" class="section hidden">
-        <div class="section-title">
-          <i class="fas fa-check-circle"></i> Upload Result
-        </div>
-        <div class="result-content">
-          <div class="link-container">
-            <input id="result-link" type="text" readonly>
-            <button id="copy-link" class="secondary" title="Copy to clipboard">
-              <i class="fas fa-copy"></i>
-            </button>
-          </div>
-          <div class="link-actions">
-            <button id="view-file" class="secondary small">
-              <i class="fas fa-external-link-alt"></i> View
-            </button>
-            <button id="new-upload" class="secondary small">
-              <i class="fas fa-redo"></i> New Upload
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Info section -->
-      <div class="section">
-        <div class="shortcut-info">
-          <i class="fas fa-info-circle"></i> Press <b>Ctrl+Shift+V</b> (or <b>⌘+Shift+V</b> on Mac) to quickly upload an image from clipboard
-        </div>
+      <div class="link-actions">
+        <button id="view-file" class="secondary small">
+          <i class="fas fa-external-link-alt"></i> View
+        </button>
+        <button id="new-upload" class="secondary small">
+          <i class="fas fa-redo"></i> New Upload
+        </button>
       </div>
     </div>
   </div>
   
-  <script src="utility.js"></script>
-  <script src="popup.js"></script>
+  <!-- Info section -->
+  <div class="section">
+    <div class="shortcut-info">
+      <i class="fas fa-info-circle"></i> Press <b>Ctrl+Shift+V</b> (or <b>⌘+Shift+V</b> on Mac) to quickly upload an image from clipboard
+    </div>
+  </div>
+</div>
+</div>
+
+<script src="utility.js"></script>
+<script src="popup.js"></script>
 </body>
 </html>
