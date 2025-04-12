@@ -1,0 +1,64 @@
+{
+    "manifest_version": 3,
+    "name": "Paste2Drive",
+    "version": "1.0",
+    "description": "Upload clipboard images to Google Drive and paste shareable links in Google Workspace products",
+    "permissions": [
+      "clipboardRead",
+      "clipboardWrite",
+      "storage",
+      "identity",
+      "contextMenus",
+      "notifications"
+    ],
+    "host_permissions": [
+      "https://docs.google.com/*",
+      "https://sheets.google.com/*",
+      "https://slides.google.com/*",
+      "https://drive.google.com/*"
+    ],
+     
+    "oauth2": {
+      "client_id": "638471605976-sj2dsrum4gfsscbhi9srk31tgir3l5ai.apps.googleusercontent.com",
+      "scopes": [
+        "https://www.googleapis.com/auth/drive",
+        "https://www.googleapis.com/auth/drive.file"
+      ]
+    },
+    
+    "icons": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    },
+    "action": {
+      "default_popup": "popup.html",
+      "default_icon": {
+        "16": "images/icon16.png",
+        "48": "images/icon48.png",
+        "128": "images/icon128.png"
+      }
+    },
+    "options_page": "options.html",
+    "background": {
+      "service_worker": "background.js"
+    },
+    "content_scripts": [
+      {
+        "matches": [
+          "https://docs.google.com/*",
+          "https://sheets.google.com/*",
+          "https://slides.google.com/*"
+        ],
+        "js": ["utility.js", "content.js"]
+      }
+    ],
+    "web_accessible_resources": [
+      {
+        "resources": ["images/*"],
+        "matches": ["<all_urls>"]
+      }
+    ],
+
+    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAljoaQ5aPxxG/Q5P4pTYZtUXa5DeQbvNxREWDx/v+C9qSK38AKuT3hX0NYCNgwzxGKZeSdfqNWy7U4/bhUvgcmLFrAUXAj8CbSk8R1p1mZjOiFUFqh0gv76zt0Gt+u1PtB95AUHtMjKCbhdN/gDeC+wtlayDSMJpi3kuIxa3e0OPVbkoFgMO13OvCuBXPi/2GIGVXv8IBhNsBXRQfXbKEJFppJYf4fO+7PN1sPAcZGNbK/7FZx7LbcL5rFtMZowVLqWS9dk+BEfuSYI0xO2d+1OAU+2BAtXCfyi6Aj4a5gW6OMwpEpbHpu1Z+a1Ftq88ma3WIgOkwjDEOxYye5WZhjQIDAQAB"
+  }

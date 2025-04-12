@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paste2Drive Options</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f8f9fa;
+      color: #333;
+    }
+    
+    .header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    
+    .header img {
+      width: 40px;
+      height: 40px;
+      margin-right: 15px;
+    }
+    
+    .header h1 {
+      font-size: 24px;
+      margin: 0;
+      color: #4285F4;
+    }
+    
+    .section {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .section h2 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-size: 18px;
+      color: #202124;
+      border-bottom: 1px solid #dadce0;
+      padding-bottom: 10px;
+    }
+    
+    .option-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .option-label {
+      flex-grow: 1;
+    }
+    
+    .option-title {
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+    
+    .option-description {
+      font-size: 13px;
+      color: #5f6368;
+    }
+    
+    /* Toggle switch styling */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+    
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .3s;
+      border-radius: 34px;
+    }
+    
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+      background-color: #4285F4;
+    }
+    
+    input:focus + .slider {
+      box-shadow: 0 0 1px #4285F4;
+    }
+    
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+    
+    /* Select styling */
+    select {
+      padding: 8px 12px;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      background-color: white;
+      min-width: 150px;
+    }
+    
+    /* Input styling */
+    input[type="text"], input[type="number"] {
+      padding: 8px 12px;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      width: 150px;
+    }
+    
+    button {
+      padding: 8px 15px;
+      background-color: #4285F4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.2s;
+    }
+    
+    button:hover {
+      background-color: #3367d6;
+    }
+    
+    .buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .buttons button.secondary {
+      background-color: #f8f9fa;
+      color: #3c4043;
+      border: 1px solid #dadce0;
+    }
+    
+    .buttons button.secondary:hover {
+      background-color: #f1f3f4;
+    }
+    
+    .status {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 4px;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+    
+    .status.success {
+      background-color: #e6f4ea;
+      color: #137333;
+      opacity: 1;
+    }
+    
+    .status.error {
+      background-color: #fce8e6;
+      color: #c5221f;
+      opacity: 1;
+    }
+    
+    .info-icon {
+      color: #4285F4;
+      margin-left: 5px;
+      cursor: help;
+      position: relative;
+    }
+    
+    .tooltip {
+      position: absolute;
+      display: none;
+      background-color: #333;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      width: 200px;
+      top: -30px;
+      left: 25px;
+      z-index: 1;
+    }
+    
+    .info-icon:hover .tooltip {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="images/icon48.png" alt="Paste2Drive Logo">
+    <h1>Paste2Drive Settings</h1>
+  </div>
+  
+  <div class="section">
+    <h2>Upload Settings</h2>
+    
+    <div class="option-row">
+      <div class="option-label">
+        <div class="option-title">Auto-upload on Ctrl+Shift+V</div>
+        <div class="option-description">Automatically upload clipboard images when using the keyboard shortcut</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="autoUpload" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+    
+    <div class="option-row">
+      <div class="option-label">
+        <div class="option-title">Default file naming</div>
+        <div class="option-description">Pattern for naming uploaded files</div>
+      </div>
+      <select id="fileNaming">
+        <option value="timestamp">Timestamp (e.g., image_2025-04-12-103045.png)</option>
+        <option value="date">Date only (e.g., image_2025-04-12.png)</option>
+        <option value="custom">Custom prefix</option>
+      </select>
+    </div>
+    
+    <div class="option-row" id="customPrefixRow" style="display: none;">
+      <div class="option-label">
+        <div class="option-title">Custom prefix</div>
+        <div class="option-description">Prefix for file names (followed by timestamp)</div>
+      </div>
+      <input type="text" id="customPrefix" placeholder="my_image_">
+    </div>
+    
+    <div class="option-row">
+      <div class="option-label">
+        <div class="option-title">Image quality</div>
+        <div class="option-description">Quality of uploaded images (PNG is lossless)</div>
+      </div>
+      <select id="imageQuality">
+        <option value="original">Original quality</option>
+        <option value="high">High quality (JPEG 90%)</option>
+        <option value="medium">Medium quality (JPEG 75%)</option>
+        <option value="low">Low quality (JPEG 50%)</option>
+      </select>
+    </div>
+  </div>
+  
+  <div class="section">
+    <h2>Link Settings</h2>
+    
+    <div class="option-row">
+      <div class="option-label">
+        <div class="option-title">Link format</div>
+        <div class="option-description">Format of the inserted link</div>
+      </div>
+      <select id="linkFormat">
+        <option value="direct">Direct link</option>
+        <option value="html">HTML &lt;a&gt; tag</option>
+        <option value="markdown">Markdown [text](url)</option>
+      </select>
+    </div>
+    
+    <div class="option-row" id="linkTextRow">
+      <div class="option-label">
+        <div class="option-title">Link text</div>
+        <div class="option-description">Text to display for the link (for HTML/Markdown)</div>
+      </div>
+      <input type="text" id="linkText" placeholder="Image Link">
+    </div>
+    
+    <div class="option-row">
+      <div class="option-label">
+        <div class="option-title">Copy link to clipboard</div>
+        <div class="option-description">Copy the link to clipboard instead of trying to insert it</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="copyLinkToClipboard" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+  
+  <div class="section">
+    <h2>Notification Settings</h2>
+    
+    <div class="option-row">
+      <div class="option-label">
+        <div class="option-title">Show notifications</div>
+        <div class="option-description">Display status notifications during upload</div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="showNotifications" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+    
+    <div class="option-row">
+      <div class="option-label">
+        <div class="option-title">Notification duration</div>
+        <div class="option-description">How long notifications are displayed (seconds)</div>
+      </div>
+      <input type="number" id="notificationDuration" min="1" max="10" value="3">
+    </div>
+  </div>
+  
+  <div class="section">
+    <h2>Advanced Settings</h2>
+    
+    <div class="option-row">
+      <div class="option-label">
+        <div class="option-title">Clear Google authorization</div>
+        <div class="option-description">Revoke access to your Google account</div>
+      </div>
+      <button id="clearAuth" class="secondary">Clear Authorization</button>
+    </div>
+    
+    <div class="option-row">
+      <div class="option-label">
+        <div class="option-title">Reset all settings</div>
+        <div class="option-description">Reset all settings to default values</div>
+      </div>
+      <button id="resetSettings" class="secondary">Reset Settings</button>
+    </div>
+  </div>
+  
+  <div class="buttons">
+    <button id="saveSettings">Save Settings</button>
+  </div>
+  
+  <div id="status" class="status"></div>
+  
+  <script src="options.js"></script>
+</body>
+</html>

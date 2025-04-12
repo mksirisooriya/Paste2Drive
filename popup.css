@@ -1,0 +1,481 @@
+#popup-notification {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-40px);
+    padding: 10px 15px;
+    background-color: #4285F4;
+    color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    z-index: 9999;
+    transition: transform 0.3s ease-out;
+    font-size: 14px;
+    text-align: center;
+    max-width: 80%;
+  }
+  
+  #popup-notification.show {
+    transform: translateX(-50%) translateY(0);
+  }
+  
+  #popup-notification.success {
+    background-color: #0f9d58;
+  }
+  
+  #popup-notification.error {
+    background-color: #db4437;
+  }
+  
+  #popup-notification.warning {
+    background-color: #f4b400;
+  }/* Styles for upload area and result section */
+  .upload-area {
+    background-color: white;
+    border: 2px dashed #dadce0;
+    border-radius: 5px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s;
+    min-height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .upload-area:hover, .upload-area.drag-over {
+    border-color: #4285F4;
+    background-color: #f0f7ff;
+  }
+  
+  .upload-prompt {
+    color: #5f6368;
+  }
+  
+  .upload-prompt i {
+    font-size: 24px;
+    margin-bottom: 8px;
+    color: #4285F4;
+  }
+  
+  .upload-prompt p {
+    margin: 0;
+    font-size: 13px;
+  }
+  
+  .link-container {
+    display: flex;
+    margin-bottom: 10px;
+  }
+  
+  .link-container input {
+    flex-grow: 1;
+    padding: 8px 10px;
+    border: 1px solid #dadce0;
+    border-right: none;
+    border-radius: 4px 0 0 4px;
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .link-container button {
+    padding: 8px 12px;
+    border-radius: 0 4px 4px 0;
+  }
+  
+  .link-actions {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  button.small {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+  
+  /* Uploading animation */
+  .uploading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+  
+  .uploading .spinner {
+    margin-bottom: 10px;
+  }
+  
+  .uploading p {
+    margin: 0;
+    color: #4285F4;
+  }
+  
+  /* Success animation */
+  .success-animation {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto;
+    border-radius: 50%;
+    background-color: #4CAF50;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: scale-up 0.3s ease-in-out;
+  }
+  
+  .success-animation i {
+    color: white;
+    font-size: 20px;
+  }
+  
+  @keyframes scale-up {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }/* Styles for Paste2Drive popup */
+  
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    width: 350px;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa;
+    color: #333;
+  }
+  
+  .header {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: #4285F4;
+    color: white;
+    border-bottom: 1px solid #3367d6;
+  }
+  
+  .header img {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+  }
+  
+  .header h1 {
+    font-size: 18px;
+    margin: 0;
+    flex-grow: 1;
+  }
+  
+  .content {
+    padding: 15px;
+  }
+  
+  .section {
+    margin-bottom: 20px;
+  }
+  
+  .section-title {
+    font-weight: bold;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .section-title i {
+    margin-right: 8px;
+    color: #4285F4;
+  }
+  
+  .account-info {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+  
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    background-color: #dadce0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+  }
+  
+  .account-details {
+    flex-grow: 1;
+  }
+  
+  .account-name {
+    font-weight: bold;
+  }
+  
+  .account-email {
+    font-size: 12px;
+    color: #5f6368;
+    margin-top: 3px;
+  }
+  
+  button {
+    padding: 8px 15px;
+    background-color: #4285F4;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+  }
+  
+  button:hover {
+    background-color: #3367d6;
+  }
+  
+  button.secondary {
+    background-color: #f8f9fa;
+    color: #3c4043;
+    border: 1px solid #dadce0;
+  }
+  
+  button.secondary:hover {
+    background-color: #f1f3f4;
+  }
+  
+  button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  .button-group {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .folder-browser {
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: white;
+    border-radius: 5px;
+    padding: 5px 0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+  
+  .folder-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .folder-item:hover {
+    background-color: #f1f3f4;
+  }
+  
+  .folder-item.selected {
+    background-color: #e8f0fe;
+    color: #1967d2;
+  }
+  
+  .folder-item i {
+    margin-right: 8px;
+    color: #5f6368;
+  }
+  
+  .folder-item.selected i {
+    color: #1967d2;
+  }
+  
+  .folder-path {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    overflow-x: auto;
+    white-space: nowrap;
+    margin-bottom: 10px;
+  }
+  
+  .path-item {
+    display: inline-flex;
+    align-items: center;
+  }
+  
+  .path-item:not(:last-child)::after {
+    content: "›";
+    margin: 0 5px;
+    color: #5f6368;
+  }
+  
+  .path-item span {
+    cursor: pointer;
+  }
+  
+  .path-item:hover span {
+    color: #1967d2;
+  }
+  
+  .new-folder {
+    display: flex;
+    gap: 5px;
+    margin-top: 10px;
+  }
+  
+  .new-folder input {
+    flex-grow: 1;
+    padding: 6px 10px;
+    border: 1px solid #dadce0;
+    border-radius: 4px;
+  }
+  
+  .login-prompt {
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .login-prompt p {
+    margin-bottom: 20px;
+    color: #5f6368;
+  }
+  
+  .shortcut-info {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #e8f0fe;
+    border-radius: 5px;
+    font-size: 13px;
+    color: #1967d2;
+  }
+  
+  .loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  
+  .spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid rgba(66, 133, 244, 0.2);
+    border-radius: 50%;
+    border-top-color: #4285f4;
+    animation: spin 1s ease-in-out infinite;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  .hidden {
+    display: none;
+  }
+  
+  .notification {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    padding: 10px 15px;
+    background-color: #4285F4;
+    color: white;
+    border-radius: 4px;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  
+  .notification.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .notification.success {
+    background-color: #0f9d58;
+  }
+  
+  .notification.error {
+    background-color: #db4437;
+  }
+  
+  .notification.warning {
+    background-color: #f4b400;
+  }
+  
+  /* Style for the settings section */
+  .settings-section {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #dadce0;
+  }
+  
+  .setting-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .setting-item label {
+    flex-grow: 1;
+  }
+  
+  /* Toggle switch styling */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+  }
+  
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .3s;
+    border-radius: 20px;
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+  }
+  
+  input:checked + .slider {
+    background-color: #4285F4;
+  }
+  
+  input:focus + .slider {
+    box-shadow: 0 0 1px #4285F4;
+  }
+  
+  input:checked + .slider:before {
+    transform: translateX(20px);
+  }
