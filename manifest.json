@@ -10,12 +10,15 @@
       "identity",
       "contextMenus",
       "notifications"
+      
     ],
     "host_permissions": [
       "https://docs.google.com/*",
       "https://sheets.google.com/*",
       "https://slides.google.com/*",
-      "https://drive.google.com/*"
+      "https://drive.google.com/*",
+      "https://www.googleapis.com/*",
+      "https://accounts.google.com/*"
     ],
     "oauth2": {
       "client_id": "638471605976-sj2dsrum4gfsscbhi9srk31tgir3l5ai.apps.googleusercontent.com",

@@ -91,23 +91,31 @@ function saveOptions() {
 // Clear Google authorization
 function clearAuthorization() {
   if (confirm('Are you sure you want to revoke access to your Google account? You will need to re-authenticate to use the extension.')) {
+    clearAuth.disabled = true;
+    showStatus('Clearing authorization...', 'info');
+    
     chrome.identity.getAuthToken({ interactive: false }, (token) => {
       if (token) {
-        // Revoke token
+        // Remove token from Chrome's cache
         chrome.identity.removeCachedAuthToken({ token }, () => {
-          // Revoke on server
+          // Revoke token on server
           fetch(`https://accounts.google.com/o/oauth2/revoke?token=${token}`)
             .then(() => {
-              showStatus('Google authorization cleared', 'success');
-              chrome.storage.sync.set({ activeAccount: null });
+              // Clear stored account data
+              chrome.storage.sync.remove(['activeAccount', 'userName', 'userEmail', 'userPicture'], () => {
+                showStatus('Google authorization cleared', 'success');
+                clearAuth.disabled = false;
+              });
             })
             .catch(error => {
               console.error('Error revoking token:', error);
-              showStatus('Error clearing authorization', 'error');
+              showStatus('Error clearing authorization: ' + error.message, 'error');
+              clearAuth.disabled = false;
             });
         });
       } else {
         showStatus('No active authorization found', 'error');
+        clearAuth.disabled = false;
       }
     });
   }
