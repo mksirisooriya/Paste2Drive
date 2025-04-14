@@ -24,21 +24,19 @@ function showPopupNotification(message, type = "info") {
     }, 3000);
   }
   
-  // Process image using utility.js function if available, otherwise provide fallback
-  function processImage(blob) {
-    // Check if we have the utility function available
-    if (typeof window.processImage === 'function') {
-      return window.processImage(blob);
-    }
-    
-    // Fallback implementation
+
+
+// Process image using utility.js function if available, otherwise provide fallback
+function processImage(blob) {
+    // IMPORTANT: Avoid calling window.processImage to prevent recursion
+    // Create a direct fallback implementation instead
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.readAsDataURL(blob);
       reader.onloadend = () => {
         resolve({
           dataUrl: reader.result,
-          type: blob.type.split('/')[1] // Extract 'png', 'jpeg', etc.
+          type: blob.type.split('/')[1] || 'png' // Extract 'png', 'jpeg', etc. with fallback
         });
       };
     });
@@ -46,18 +44,153 @@ function showPopupNotification(message, type = "info") {
   
   // Generate filename using utility.js function if available, otherwise provide fallback
   function generateFilename(fileType) {
-    // Check if we have the utility function available
-    if (typeof window.generateFilename === 'function') {
-      return window.generateFilename(fileType);
-    }
-    
-    // Fallback implementation
+    // IMPORTANT: Avoid calling window.generateFilename to prevent recursion
+    // Create a direct fallback implementation instead
     return new Promise((resolve) => {
       const now = new Date();
       const dateStr = now.toISOString().slice(0, 10); // YYYY-MM-DD
       const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, ''); // HHMMSS
       const filename = `image_${dateStr}-${timeStr}.${fileType}`;
       resolve(filename);
+    });
+  }
+  
+  // Process and upload image with improved error handling
+  function processAndUploadImage(blob) {
+    console.log('Starting image processing with blob type:', blob ? blob.type : 'undefined blob');
+    
+    // Guard against null blob
+    if (!blob) {
+      console.error('No valid blob to process');
+      resetUploadUI();
+      showPopupNotification("Error: No valid image data found", "error");
+      return;
+    }
+  
+    // Use try-catch with the promise chain for better error handling
+    try {
+      // Process the image (handle compression if needed)
+      processImage(blob)
+        .then(processedImage => {
+          console.log('Image processed, generating filename...');
+          // Generate filename
+          return generateFilename(processedImage.type)
+            .then(filename => {
+              console.log('Filename generated:', filename);
+              return { 
+                imageData: processedImage.dataUrl, 
+                filename: filename 
+              };
+            });
+        })
+        .then(({ imageData, filename }) => {
+          // Get the current folder ID
+          const folderId = currentFolderId || 'root';
+          
+          console.log('Sending upload request to folder:', folderId);
+          
+          // Upload to Google Drive
+          chrome.runtime.sendMessage(
+            { 
+              action: "uploadImage", 
+              imageData: imageData, 
+              folder: folderId,
+              filename: filename
+            }, 
+            (response) => {
+              if (chrome.runtime.lastError) {
+                console.error('Chrome runtime error:', chrome.runtime.lastError);
+                resetUploadUI();
+                showPopupNotification("Upload failed: " + chrome.runtime.lastError.message, "error");
+                return;
+              }
+              
+              if (response && response.success) {
+                console.log('Upload successful, file ID:', response.fileId);
+                // Show success UI
+                showSuccessUI(response.shareableLink, response.fileId);
+                // Reload the folder contents to show the new file
+                loadFolders(currentFolderId);
+              } else {
+                // Show error
+                console.error('Upload failed:', response ? response.error : 'Unknown error');
+                resetUploadUI();
+                showPopupNotification("Upload failed: " + (response && response.error ? response.error : "Unknown error"), "error");
+              }
+            }
+          );
+        })
+        .catch(error => {
+          console.error('Error in promise chain:', error);
+          resetUploadUI();
+          showPopupNotification("Error processing image: " + (error.message || "Unknown error"), "error");
+        });
+    } catch (outerError) {
+      console.error('Critical error in upload process:', outerError);
+      resetUploadUI();
+      showPopupNotification("Critical error: " + (outerError.message || "Unknown error"), "error");
+    }
+  }
+  
+  // Enhanced clipboard upload function
+  function handleUploadFromClipboard() {
+    // Check authentication
+    chrome.runtime.sendMessage({ action: "checkAuth" }, (response) => {
+      if (!response || !response.isAuthenticated) {
+        showPopupNotification("Please authenticate with Google Drive first", "error");
+        return;
+      }
+      
+      // Start upload process
+      showUploadingUI();
+      
+      // Read clipboard
+      navigator.clipboard.read()
+        .then(async (clipboardItems) => {
+          if (!clipboardItems || clipboardItems.length === 0) {
+            throw new Error("Clipboard is empty");
+          }
+          
+          let foundImage = false;
+          
+          for (const clipboardItem of clipboardItems) {
+            // Check if clipboard has image
+            const imageTypes = clipboardItem.types.filter(type => 
+              type.startsWith('image/'));
+            
+            if (imageTypes.length > 0) {
+              console.log('Found image type in clipboard:', imageTypes);
+              // Get the image type (prefer PNG if available)
+              const imageType = imageTypes.includes('image/png') 
+                ? 'image/png' 
+                : imageTypes[0];
+              
+              try {
+                // Get the image blob
+                const blob = await clipboardItem.getType(imageType);
+                console.log('Got image blob of type:', blob.type, 'size:', blob.size);
+                foundImage = true;
+                
+                // Upload the image
+                processAndUploadImage(blob);
+                break;
+              } catch (error) {
+                console.error('Error getting image from clipboard:', error);
+                throw error;
+              }
+            }
+          }
+          
+          if (!foundImage) {
+            resetUploadUI();
+            showPopupNotification("No image found in clipboard", "error");
+          }
+        })
+        .catch(error => {
+          console.error('Error accessing clipboard:', error);
+          resetUploadUI();
+          showPopupNotification("Could not access clipboard: " + error.message, "error");
+        });
     });
   }
   
@@ -224,9 +357,22 @@ function showPopupNotification(message, type = "info") {
     });
   }
   
-  // Handle change account button click - UPDATED VERSION
-  function handleChangeAccount() {
+  // Handle change account button click
+function handleChangeAccount() {
     showView(loadingView);
+    
+    // Initially hide previous uploads section - don't clear its contents yet
+    if (previousUploadsSection) {
+      previousUploadsSection.classList.add('hidden');
+    }
+    
+    // Hide the result section if it's visible
+    if (resultSection) {
+      resultSection.classList.add('hidden');
+    }
+    
+    // Reset the upload area
+    resetUploadUI();
     
     chrome.runtime.sendMessage({ action: "changeAccount" }, (response) => {
       if (response && response.success && response.userInfo) {
@@ -236,23 +382,9 @@ function showPopupNotification(message, type = "info") {
         currentFolderId = 'root';
         pathHistory = [{ id: 'root', name: 'My Drive' }];
         updatePathDisplay();
+        
+        // Load folders for the new account's root
         loadFolders('root');
-        
-        // Clear previous uploads section
-        if (previousUploadsSection) {
-          previousUploadsSection.classList.add('hidden');
-        }
-        if (previousUploadsContainer) {
-          previousUploadsContainer.innerHTML = '';
-        }
-        
-        // Hide the result section if it's visible
-        if (resultSection) {
-          resultSection.classList.add('hidden');
-        }
-        
-        // Reset the upload area
-        resetUploadUI();
         
         showView(mainView);
       } else {
@@ -680,11 +812,24 @@ function showPopupNotification(message, type = "info") {
     }
   }
   
-  // Process and upload image
-  function processAndUploadImage(blob) {
-    // Process the image (handle compression if needed)
+  
+// Process and upload image
+function processAndUploadImage(blob) {
+    // Guard against null blob
+    if (!blob) {
+      console.error('No valid blob to process');
+      resetUploadUI();
+      showPopupNotification("Error: No valid image data found", "error");
+      return;
+    }
+  
+    // Process the image (handle compression if needed) with error handling
     processImage(blob)
       .then(processedImage => {
+        if (!processedImage || !processedImage.dataUrl) {
+          throw new Error('Failed to process image');
+        }
+        
         // Generate filename
         return generateFilename(processedImage.type)
           .then(filename => {
@@ -698,6 +843,8 @@ function showPopupNotification(message, type = "info") {
         // Get the current folder ID
         const folderId = currentFolderId || 'root';
         
+        console.log('Starting upload to folder:', folderId);
+        
         // Upload to Google Drive
         chrome.runtime.sendMessage(
           { 
@@ -708,12 +855,14 @@ function showPopupNotification(message, type = "info") {
           }, 
           (response) => {
             if (response && response.success) {
+              console.log('Upload successful');
               // Show success UI
               showSuccessUI(response.shareableLink, response.fileId);
               // Reload the folder contents to show the new file
               loadFolders(currentFolderId);
             } else {
               // Show error
+              console.error('Upload failed:', response ? response.error : 'Unknown error');
               resetUploadUI();
               showPopupNotification("Upload failed: " + (response && response.error ? response.error : "Unknown error"), "error");
             }
@@ -721,9 +870,9 @@ function showPopupNotification(message, type = "info") {
         );
       })
       .catch(error => {
-        console.error('Error processing image:', error);
+        console.error('Error in processing/uploading image:', error);
         resetUploadUI();
-        showPopupNotification("Error processing image", "error");
+        showPopupNotification("Error processing image: " + error.message, "error");
       });
   }
   
