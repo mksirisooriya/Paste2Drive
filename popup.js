@@ -59,7 +59,9 @@ function showPopupNotification(message, type = "info") {
       const filename = `image_${dateStr}-${timeStr}.${fileType}`;
       resolve(filename);
     });
-  }// Popup script for Paste2Drive extension
+  }
+  
+  // Popup script for Paste2Drive extension
   
   // DOM elements
   const loginView = document.getElementById('login-view');
@@ -222,18 +224,36 @@ function showPopupNotification(message, type = "info") {
     });
   }
   
-  // Handle change account button click
+  // Handle change account button click - UPDATED VERSION
   function handleChangeAccount() {
     showView(loadingView);
     
     chrome.runtime.sendMessage({ action: "changeAccount" }, (response) => {
       if (response && response.success && response.userInfo) {
         updateUserInfo(response.userInfo);
+        
         // Reset to root folder
         currentFolderId = 'root';
         pathHistory = [{ id: 'root', name: 'My Drive' }];
         updatePathDisplay();
         loadFolders('root');
+        
+        // Clear previous uploads section
+        if (previousUploadsSection) {
+          previousUploadsSection.classList.add('hidden');
+        }
+        if (previousUploadsContainer) {
+          previousUploadsContainer.innerHTML = '';
+        }
+        
+        // Hide the result section if it's visible
+        if (resultSection) {
+          resultSection.classList.add('hidden');
+        }
+        
+        // Reset the upload area
+        resetUploadUI();
+        
         showView(mainView);
       } else {
         showView(loginView);
