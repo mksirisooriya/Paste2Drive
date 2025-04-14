@@ -141,3 +141,59 @@ function showStatus(message, type = 'success') {
     status.style.opacity = '0';
   }, 3000);
 }
+
+// Enhanced handler for change account button click
+function handleChangeAccount() {
+    showView(loadingView);
+    
+    chrome.runtime.sendMessage({ action: "changeAccount" }, (response) => {
+      if (response && response.success) {
+        if (response.status === 'account_selection_started') {
+          // Account selection has started in a separate tab
+          // Show a message to the user in the popup
+          showView(loginView);
+          
+          // Create a message element if it doesn't exist
+          let messageElement = document.querySelector('.account-selection-message');
+          if (!messageElement) {
+            messageElement = document.createElement('div');
+            messageElement.className = 'account-selection-message';
+            messageElement.style.marginTop = '20px';
+            messageElement.style.padding = '10px';
+            messageElement.style.backgroundColor = '#e8f0fe';
+            messageElement.style.color = '#1967d2';
+            messageElement.style.borderRadius = '4px';
+            messageElement.style.fontSize = '13px';
+            messageElement.style.textAlign = 'center';
+            
+            const loginPrompt = document.querySelector('.login-prompt');
+            if (loginPrompt) {
+              loginPrompt.appendChild(messageElement);
+            }
+          }
+          
+          // Set the message text
+          messageElement.textContent = response.message || 'Please select or switch to your desired Google account, then click "Sign in" again.';
+        } else if (response.userInfo) {
+          // User info was returned, update the UI
+          updateUserInfo(response.userInfo);
+          
+          // Reset to root folder if account changed
+          currentFolderId = 'root';
+          pathHistory = [{ id: 'root', name: 'My Drive' }];
+          updatePathDisplay();
+          loadFolders('root');
+          
+          showView(mainView);
+        }
+      } else {
+        // Error handling
+        showView(loginView);
+        if (response && response.error) {
+          showLoginError(response.error);
+        } else {
+          showLoginError("Failed to change account. Please try again.");
+        }
+      }
+    });
+  }
