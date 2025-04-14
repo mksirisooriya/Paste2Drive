@@ -5,24 +5,48 @@ function showPopupNotification(message, type = "info") {
     if (!notification) {
       notification = document.createElement('div');
       notification.id = 'popup-notification';
-      notification.className = 'notification';
       document.body.appendChild(notification);
     }
     
     // Set message and type
     notification.textContent = message;
-    notification.className = 'notification ' + type;
+    notification.className = type;
     
-    // Show the notification
+    // Fixed CSS for proper positioning and transitions
+    notification.style.position = 'fixed';
+    notification.style.top = '-60px'; // Start offscreen above
+    notification.style.left = '50%';
+    notification.style.transform = 'translateX(-50%)';
+    notification.style.padding = '10px 15px';
+    notification.style.borderRadius = '4px';
+    notification.style.color = 'white';
+    notification.style.zIndex = '9999';
+    notification.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+    notification.style.transition = 'top 0.3s ease-out';
+    notification.style.textAlign = 'center';
+    notification.style.maxWidth = '80%';
+    
+    // Set background color based on type
+    if (type === 'success') {
+      notification.style.backgroundColor = '#0f9d58'; // Green
+    } else if (type === 'error') {
+      notification.style.backgroundColor = '#db4437'; // Red
+    } else if (type === 'warning') {
+      notification.style.backgroundColor = '#f4b400'; // Yellow
+    } else {
+      notification.style.backgroundColor = '#4285F4'; // Blue for info
+    }
+    
+    // Show the notification by moving it down
     setTimeout(() => {
-      notification.classList.add('show');
+      notification.style.top = '10px';
     }, 10);
     
-    // Hide after delay
+    // Hide after delay by moving it back up
     setTimeout(() => {
-      notification.classList.remove('show');
+      notification.style.top = '-60px';
     }, 3000);
-  }
+}
   
 
 
