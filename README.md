@@ -2,48 +2,59 @@
 
 A Chrome extension that makes it easy to upload clipboard images to Google Drive and insert shareable links in Google Workspace products.
 
-![Paste2Drive Logo](images/icon128.png)
+<p align="center">
+  <img src="images/icon128.png" alt="Paste2Drive Logo" width="128">
+</p>
 
 ## Features
 
-- Upload clipboard images directly to Google Drive with a single keyboard shortcut
+- Upload clipboard images directly to Google Drive with a simple click
 - Automatically create shareable links for uploaded images
 - Choose where to save your images in Google Drive
 - Navigate through your Drive folders
 - Create new folders directly from the extension
 - Switch between Google accounts
 - Works with Google Docs, Sheets, and Slides
+- Drag and drop image uploads
+- View and reuse previous uploads
 
 ## Installation
 
-### For Users
+### Chrome Web Store (Recommended)
 
-1. Download the extension from the [Chrome Web Store](https://chrome.google.com/webstore/detail/paste2drive/your-extension-id)
+1. Visit the [Paste2Drive page on the Chrome Web Store](https://chrome.google.com/webstore/detail/paste2drive/[YOUR-EXTENSION-ID])
 2. Click "Add to Chrome" to install the extension
 3. Click on the Paste2Drive icon in your extensions toolbar to set up your Google Drive connection
 
-### For Developers
+### Manual Installation for Developers
 
-1. Clone this repository or download the source code
+1. Clone this repository: `git clone https://github.com/mksirisooriya/Paste2Drive.git`
 2. Open Chrome and navigate to `chrome://extensions/`
 3. Enable "Developer mode" at the top right
 4. Click "Load unpacked" and select the folder containing the extension files
-5. Configure your OAuth credentials as described in the "Development Setup" section
+5. Configure your own OAuth credentials as described in the "Development Setup" section
 
 ## Usage
 
-### Quick Upload (Keyboard Shortcut)
+### Quick Upload (From Extension Popup)
 
 1. Copy an image to your clipboard (e.g., using Print Screen or Ctrl+C)
-2. In a Google Workspace app (Docs, Sheets, or Slides), press `Ctrl+Shift+V` (or `Cmd+Shift+V` on Mac)
-3. The image will be uploaded to your selected Google Drive folder, and a shareable link will be pasted at your cursor position
+2. Click the Paste2Drive icon in your browser toolbar
+3. Click the "Upload Clipboard" button
+4. The image will be uploaded to your selected Google Drive folder, and the link will be copied to your clipboard
 
-### Manual Upload (Context Menu)
+### Upload with Context Menu
 
 1. Copy an image to your clipboard
 2. Right-click in any editable area in a Google Workspace app
 3. Select "Upload to Drive" from the context menu
 4. The image will be uploaded and a link will be inserted
+
+### Drag and Drop Upload
+
+1. Click the Paste2Drive icon in your browser toolbar
+2. Drag and drop an image file directly onto the upload area
+3. The image will be uploaded to your selected folder and the link will be copied to your clipboard
 
 ### Setting a Default Folder
 
@@ -67,9 +78,8 @@ A Chrome extension that makes it easy to upload clipboard images to Google Drive
 ### Configuring Options
 
 1. Click the Paste2Drive icon in your toolbar
-2. Click the "Settings" button, or
-3. Go to `chrome://extensions/`, find Paste2Drive, and click "Extension options"
-4. Customize upload settings, link formats, and notification preferences
+2. Click the "Settings" button
+3. Customize upload settings, link formats, and notification preferences
 
 ## Permissions
 
@@ -86,7 +96,7 @@ It also needs access to Google Workspace sites to function properly.
 
 ## Privacy
 
-Paste2Drive only accesses your clipboard when you explicitly trigger an upload using the keyboard shortcut or context menu. Your Google Drive access is limited to folders and file operations needed for the extension to function. See our [Privacy Policy](PRIVACY-POLICY.md) for more details.
+Paste2Drive only accesses your clipboard when you explicitly trigger an upload using the extension popup or context menu. Your Google Drive access is limited to folders and file operations needed for the extension to function. See our [Privacy Policy](PRIVACY-POLICY.md) for more details.
 
 ## Development Setup
 
@@ -104,8 +114,10 @@ To develop or modify this extension, you'll need to:
 3. Navigate to "APIs & Services" > "OAuth consent screen"
 4. Configure the consent screen (External or Internal type)
 5. Add the necessary scopes:
-   - `https://www.googleapis.com/auth/drive`
    - `https://www.googleapis.com/auth/drive.file`
+   - `https://www.googleapis.com/auth/drive.readonly`
+   - `https://www.googleapis.com/auth/userinfo.profile`
+   - `https://www.googleapis.com/auth/userinfo.email`
 6. Navigate to "APIs & Services" > "Credentials"
 7. Click "Create Credentials" > "OAuth client ID"
 8. Choose "Chrome App" as the application type
@@ -125,7 +137,7 @@ To develop or modify this extension, you'll need to:
 
 To build the extension for distribution:
 
-1. Make sure you have 7-Zip installed and available in your PATH
+1. Make sure you have 7-Zip installed and available in your PATH, or use PowerShell
 2. Run the included build script:
    ```
    build.bat
@@ -156,6 +168,22 @@ To build the extension for distribution:
 
 Contributions are welcome! Please feel free to submit a Pull Request or create an Issue to report bugs or suggest features.
 
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## Security Note
+
+This extension includes a client ID in the manifest.json file as required by Chrome for OAuth authentication. This practice is standard for Chrome extensions using Google OAuth and is not a security concern as the extension also implements the proper authentication flow.
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgements
+
+- [Google Drive API](https://developers.google.com/drive)
+- [Chrome Extension API](https://developer.chrome.com/docs/extensions/)
+- [Font Awesome](https://fontawesome.com/) for icons

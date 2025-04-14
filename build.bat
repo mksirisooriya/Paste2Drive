@@ -1,4 +1,5 @@
 @echo off
+setlocal EnableDelayedExpansion
 REM Build script for Paste2Drive Chrome Extension
 
 REM Set variables
@@ -42,42 +43,41 @@ IF %ERRORLEVEL% EQU 0 (
       
     echo Package created successfully: %BUILD_DIR%\%ZIP_NAME%
 ) ELSE (
-    echo 7-Zip not found. Checking for PowerShell...
-    powershell -Command "& {if (Get-Command Compress-Archive -ErrorAction SilentlyContinue) {exit 0} else {exit 1}}" >nul 2>nul
+    echo 7-Zip not found. Using PowerShell...
     
-    IF %ERRORLEVEL% EQU 0 (
-        echo Using PowerShell to create package...
-        
-        REM Create a temporary directory with only the files we want
-        mkdir temp_build
-        copy manifest.json temp_build\
-        copy background.js temp_build\
-        copy content.js temp_build\
-        copy popup.html temp_build\
-        copy popup.js temp_build\
-        copy popup.css temp_build\
-        copy options.html temp_build\
-        copy options.js temp_build\
-        copy utility.js temp_build\
-        mkdir temp_build\images
-        copy images\*.png temp_build\images\
-        copy README.md temp_build\
-        copy PRIVACY-POLICY.md temp_build\
-        
-        REM Create zip with PowerShell
-        powershell -Command "& {Compress-Archive -Path temp_build\* -DestinationPath '%BUILD_DIR%\%ZIP_NAME%' -Force}"
-        
-        REM Clean up
-        rmdir /s /q temp_build
-        
+    REM Create a temporary directory with only the files we want
+    mkdir temp_build
+    copy manifest.json temp_build\
+    copy background.js temp_build\
+    copy content.js temp_build\
+    copy popup.html temp_build\
+    copy popup.js temp_build\
+    copy popup.css temp_build\
+    copy options.html temp_build\
+    copy options.js temp_build\
+    copy utility.js temp_build\
+    mkdir temp_build\images
+    copy images\*.png temp_build\images\
+    copy README.md temp_build\
+    copy PRIVACY-POLICY.md temp_build\
+    
+    REM Create zip with PowerShell - direct command without conditional check
+    powershell -Command "Compress-Archive -Path 'temp_build\*' -DestinationPath '%BUILD_DIR%\%ZIP_NAME%' -Force"
+    
+    REM Check if zip was created successfully
+    IF EXIST "%BUILD_DIR%\%ZIP_NAME%" (
         echo Package created successfully: %BUILD_DIR%\%ZIP_NAME%
     ) ELSE (
-        echo Neither 7-Zip nor PowerShell Compress-Archive is available.
+        echo Failed to create package with PowerShell.
         echo Please manually zip the necessary files or install 7-Zip.
     )
+    
+    REM Clean up
+    rmdir /s /q temp_build
 )
 
 echo.
 echo Build complete: %BUILD_DIR%\%ZIP_NAME%
 echo Ready to upload to Chrome Web Store!
 echo.
+pause
