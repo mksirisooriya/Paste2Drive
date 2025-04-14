@@ -118,9 +118,30 @@ chrome.runtime.onInstalled.addListener(() => {
   
   // Authenticate user (interactive)
   function authenticate(sendResponse) {
-    console.log('Starting authentication process...');
+    console.log('Starting authentication process with account chooser...');
     
-    chrome.identity.getAuthToken({ interactive: true }, (token) => {
+    // First check if there's an existing token to clear it
+    chrome.identity.getAuthToken({ interactive: false }, (currentToken) => {
+      // If there's a current token, remove it to force account chooser
+      if (currentToken) {
+        chrome.identity.removeCachedAuthToken({ token: currentToken }, () => {
+          // Now get a new token with interactive mode and prompt
+          getNewAuthToken(sendResponse);
+        });
+      } else {
+        // No current token, just get a new one with interactive mode
+        getNewAuthToken(sendResponse);
+      }
+    });
+  }
+  
+  // Helper function to get a new auth token with account chooser
+  function getNewAuthToken(sendResponse) {
+    chrome.identity.getAuthToken({ 
+      interactive: true,
+      // Force account selection dialog even if user is already signed in
+      account: null
+    }, (token) => {
       if (chrome.runtime.lastError) {
         console.error('Authentication error:', chrome.runtime.lastError);
         sendResponse({ 
@@ -163,22 +184,12 @@ chrome.runtime.onInstalled.addListener(() => {
       })
       .catch(error => {
         console.error('Error fetching user info:', error);
-        
-        // Try to get more details if possible
-        if (error.response) {
-          error.response.text().then(text => {
-            console.error('Response details:', text);
-          }).catch(err => {
-            console.error('Could not get response text:', err);
-          });
-        }
-        
         sendResponse({ success: false, error: error.message });
       });
     });
   }
   
-  // Change Google account - Updated with fix from old working code
+  // Change Google account - Updated with improved account chooser
   function changeAccount(sendResponse) {
     console.log('Changing account...');
     
@@ -205,7 +216,10 @@ chrome.runtime.onInstalled.addListener(() => {
                   // Short timeout to ensure everything is cleared
                   setTimeout(() => {
                     // Step 3: Now get a new token with interactive mode to force account picker
-                    chrome.identity.getAuthToken({ interactive: true }, (newToken) => {
+                    chrome.identity.getAuthToken({ 
+                      interactive: true,
+                      account: null // Force account chooser
+                    }, (newToken) => {
                       if (chrome.runtime.lastError || !newToken) {
                         console.error('Error getting new token:', chrome.runtime.lastError);
                         sendResponse({ 
@@ -245,12 +259,12 @@ chrome.runtime.onInstalled.addListener(() => {
             .catch(error => {
               console.error('Error revoking token:', error);
               // Continue anyway, as we'll clear the cache
-              authenticate(sendResponse);
+              getNewAuthToken(sendResponse);
             });
         });
       } else {
         // No current token, just authenticate
-        authenticate(sendResponse);
+        getNewAuthToken(sendResponse);
       }
     });
   }

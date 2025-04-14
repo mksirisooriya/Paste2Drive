@@ -283,7 +283,7 @@ function processImage(blob) {
   }
   
   // Initialize popup
-  function initializePopup() {
+function initializePopup() {
     console.log('Initializing popup...');
     showView(loadingView);
     
@@ -291,37 +291,41 @@ function processImage(blob) {
     const errorElements = document.querySelectorAll('.login-error');
     errorElements.forEach(el => el.remove());
     
-    // Check if user is authenticated
-    chrome.runtime.sendMessage({ action: "checkAuth" }, (response) => {
-      console.log('Auth check response:', response);
-      
-      if (response && response.isAuthenticated && response.userInfo) {
-        // User is authenticated
-        updateUserInfo(response.userInfo);
-        showView(mainView);
-        
-        // Get current default folder from storage
-        chrome.storage.sync.get(['defaultFolder', 'defaultFolderPath'], (result) => {
-          if (result.defaultFolder && result.defaultFolderPath) {
-            currentFolderId = result.defaultFolder;
-            updatePathFromSaved(result.defaultFolderPath);
-            loadFolders(currentFolderId);
+    // Check if user has used the extension before
+    chrome.storage.sync.get(['activeAccount'], (result) => {
+      if (result.activeAccount) {
+        // User has logged in before, check if still authenticated
+        chrome.runtime.sendMessage({ action: "checkAuth" }, (response) => {
+          console.log('Auth check response:', response);
+          
+          if (response && response.isAuthenticated && response.userInfo) {
+            // User is authenticated
+            updateUserInfo(response.userInfo);
+            showView(mainView);
+            
+            // Get current default folder from storage
+            chrome.storage.sync.get(['defaultFolder', 'defaultFolderPath'], (result) => {
+              if (result.defaultFolder && result.defaultFolderPath) {
+                currentFolderId = result.defaultFolder;
+                updatePathFromSaved(result.defaultFolderPath);
+                loadFolders(currentFolderId);
+              } else {
+                // Use root folder as default
+                currentFolderId = 'root';
+                pathHistory = [{ id: 'root', name: 'My Drive' }];
+                updatePathDisplay();
+                loadFolders(currentFolderId);
+              }
+            });
           } else {
-            // Use root folder as default
-            currentFolderId = 'root';
-            pathHistory = [{ id: 'root', name: 'My Drive' }];
-            updatePathDisplay();
-            loadFolders(currentFolderId);
+            // Previously logged in but token expired or revoked
+            // Show the login view with the "Change Account" button more prominent
+            showLoginWithAccountSelector();
           }
         });
       } else {
-        // User is not authenticated, prompt for login
-        showView(loginView);
-        
-        // Show error if there is one
-        if (response && response.error) {
-          showLoginError(response.error);
-        }
+        // First time use or account cleared - show account chooser
+        showLoginWithAccountSelector();
       }
     });
   }
@@ -354,14 +358,15 @@ function processImage(blob) {
   }
   
   // Handle login button click
-  function handleLogin() {
+function handleLogin() {
     // Remove any existing error messages
     const existingErrors = document.querySelectorAll('.login-error');
     existingErrors.forEach(el => el.remove());
     
     showView(loadingView);
     
-    chrome.runtime.sendMessage({ action: "authenticate" }, (response) => {
+    // Use the "changeAccount" method instead of "authenticate" to ensure account chooser appears
+    chrome.runtime.sendMessage({ action: "changeAccount" }, (response) => {
       console.log('Authentication response:', response);
       
       if (response && response.success && response.userInfo) {
@@ -376,6 +381,37 @@ function processImage(blob) {
           showLoginError(response.error);
         } else {
           showLoginError("Authentication failed. Please try again.");
+        }
+      }
+    });
+  }
+
+ // Function to show login view with appropriate messaging
+function showLoginWithAccountSelector() {
+    showView(loginView);
+    
+    // Check if user has ever logged in before
+    chrome.storage.sync.get(['activeAccount'], (result) => {
+      // Find the login button and update its text appropriately
+      if (loginButton) {
+        if (result.activeAccount) {
+          // Returning user who needs to re-authenticate
+          loginButton.innerHTML = '<i class="fab fa-google"></i> Choose Google Account';
+          
+          // Update the prompt text to be more clear
+          const promptElement = document.querySelector('.login-prompt p');
+          if (promptElement) {
+            promptElement.textContent = 'Please select which Google account to use with Paste2Drive';
+          }
+        } else {
+          // First-time user - keep the original "Sign in" wording
+          loginButton.innerHTML = '<i class="fab fa-google"></i> Sign in with Google';
+          
+          // Update the prompt text for first-time users
+          const promptElement = document.querySelector('.login-prompt p');
+          if (promptElement) {
+            promptElement.textContent = 'Please sign in with your Google Drive account to use Paste2Drive';
+          }
         }
       }
     });
