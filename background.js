@@ -178,53 +178,74 @@ chrome.runtime.onInstalled.addListener(() => {
     });
   }
   
-  // Change Google account
+  // Change Google account - Updated with fix from old working code
   function changeAccount(sendResponse) {
     console.log('Changing account...');
     
-    // First revoke current token
+    // First get the current token without interactive mode
     chrome.identity.getAuthToken({ interactive: false }, (currentToken) => {
       if (currentToken) {
+        // Step 1: Remove the token from Chrome's cache
         chrome.identity.removeCachedAuthToken({ token: currentToken }, () => {
-          // Revoke token on server
+          console.log('Token removed from cache');
+          
+          // Step 2: Revoke the token on server
           fetch(`https://accounts.google.com/o/oauth2/revoke?token=${currentToken}`)
-            .then(() => {
-              console.log('Previous token revoked, getting new one');
-              // Now authenticate with a new account
-              chrome.identity.getAuthToken({ interactive: true }, (newToken) => {
-                if (chrome.runtime.lastError || !newToken) {
-                  console.error('Error getting new token:', chrome.runtime.lastError);
-                  sendResponse({ success: false, error: chrome.runtime.lastError ? chrome.runtime.lastError.message : "Authentication failed" });
-                  return;
-                }
+            .then(response => {
+              console.log('Token revocation response:', response.status);
+              
+              // Clear all cached tokens to ensure a fresh start
+              chrome.identity.clearAllCachedAuthTokens(() => {
+                console.log('All cached tokens cleared');
                 
-                // Get new user info
-                fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-                  headers: { Authorization: `Bearer ${newToken}` }
-                })
-                .then(response => {
-                  if (!response.ok) {
-                    throw new Error(`User info fetch failed: ${response.status}`);
-                  }
-                  return response.json();
-                })
-                .then(data => {
-                  chrome.storage.sync.set({ 
-                    activeAccount: data.email,
-                    userName: data.name || data.email.split('@')[0],
-                    userPicture: data.picture || ''
-                  });
-                  sendResponse({ success: true, userInfo: data });
-                })
-                .catch(error => {
-                  console.error('Error fetching user info:', error);
-                  sendResponse({ success: false, error: error.message });
+                // Clean up stored account data
+                chrome.storage.sync.remove(['activeAccount', 'userName', 'userEmail', 'userPicture'], () => {
+                  console.log('Account data cleared from storage');
+                  
+                  // Short timeout to ensure everything is cleared
+                  setTimeout(() => {
+                    // Step 3: Now get a new token with interactive mode to force account picker
+                    chrome.identity.getAuthToken({ interactive: true }, (newToken) => {
+                      if (chrome.runtime.lastError || !newToken) {
+                        console.error('Error getting new token:', chrome.runtime.lastError);
+                        sendResponse({ 
+                          success: false, 
+                          error: chrome.runtime.lastError ? chrome.runtime.lastError.message : "Authentication failed" 
+                        });
+                        return;
+                      }
+                      
+                      // Get new user info with the new token
+                      fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+                        headers: { Authorization: `Bearer ${newToken}` }
+                      })
+                      .then(response => {
+                        if (!response.ok) {
+                          throw new Error(`User info fetch failed: ${response.status}`);
+                        }
+                        return response.json();
+                      })
+                      .then(data => {
+                        chrome.storage.sync.set({ 
+                          activeAccount: data.email,
+                          userName: data.name || data.email.split('@')[0],
+                          userPicture: data.picture || ''
+                        });
+                        sendResponse({ success: true, userInfo: data });
+                      })
+                      .catch(error => {
+                        console.error('Error fetching user info:', error);
+                        sendResponse({ success: false, error: error.message });
+                      });
+                    });
+                  }, 300); // Short delay to ensure token revocation is processed
                 });
               });
             })
             .catch(error => {
               console.error('Error revoking token:', error);
-              sendResponse({ success: false, error: error.message });
+              // Continue anyway, as we'll clear the cache
+              authenticate(sendResponse);
             });
         });
       } else {
