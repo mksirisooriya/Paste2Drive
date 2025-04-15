@@ -61,6 +61,5 @@
         "resources": ["images/*"],
         "matches": ["<all_urls>"]
       }
-    ],
-    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAljoaQ5aPxxG/Q5P4pTYZtUXa5DeQbvNxREWDx/v+C9qSK38AKuT3hX0NYCNgwzxGKZeSdfqNWy7U4/bhUvgcmLFrAUXAj8CbSk8R1p1mZjOiFUFqh0gv76zt0Gt+u1PtB95AUHtMjKCbhdN/gDeC+wtlayDSMJpi3kuIxa3e0OPVbkoFgMO13OvCuBXPi/2GIGVXv8IBhNsBXRQfXbKEJFppJYf4fO+7PN1sPAcZGNbK/7FZx7LbcL5rFtMZowVLqWS9dk+BEfuSYI0xO2d+1OAU+2BAtXCfyi6Aj4a5gW6OMwpEpbHpu1Z+a1Ftq88ma3WIgOkwjDEOxYye5WZhjQIDAQAB"
+    ]
   }
