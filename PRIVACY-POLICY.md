@@ -1,6 +1,6 @@
 # Privacy Policy for Paste2Drive
 
-Last Updated: April 15, 2025
+Last Updated: April 18, 2025
 
 ## Introduction
 
@@ -29,6 +29,48 @@ We use the information we collect to:
 - Enable you to upload images to your Google Drive
 - Generate shareable links for uploaded images
 - Store your preferences locally to remember your selected default folder and settings
+
+## Data Protection Mechanisms
+
+We implement the following safeguards to protect your sensitive data:
+
+- **OAuth Authentication**: We use Google's official OAuth 2.0 protocol to authenticate users, ensuring secure access without exposing your Google credentials. We never see or store your Google password.
+
+- **Local Processing**: All image processing occurs locally within your browser before upload to Google Drive. Your clipboard images never reach our servers.
+
+- **Secure API Communication**: All communication between the extension and Google APIs is conducted using HTTPS with industry-standard TLS encryption.
+
+- **No External Servers**: Paste2Drive operates as a client-side extension that communicates directly with Google's APIs. We do not route your data through any third-party servers, and we do not maintain any servers that store or process your data.
+
+- **Minimal Scope Access**: We request only the permissions required for the extension to function properly. The `drive.readonly` scope is used only to allow you to navigate your folder structure and view previously uploaded files, while file creation is handled with minimal permissions.
+
+- **Secure Storage**: Your preferences and settings are stored exclusively in Chrome's secure extension storage API, which encrypts the data at rest.
+
+- **Extension Security Isolation**: We benefit from Chrome's extension security model, which isolates extension contexts from webpage contexts, providing protection against common web vulnerabilities like cross-site scripting. Our extension follows Chrome's best practices for secure extension development.
+
+- **No Background Data Collection**: The extension only accesses your clipboard data when you explicitly initiate an upload action, and never in the background.
+
+## Data Retention and Deletion
+
+- **Google Account Information**: While we receive basic profile information (name, email, profile picture) during authentication, this information is only stored locally in your browser's secure storage. We do not transfer this information to any external servers, and it is only used to display your account information within the extension.
+
+- **Clipboard Data**: Images from your clipboard are processed locally and immediately uploaded to your Google Drive. We do not retain copies of your clipboard data after upload.
+
+- **Local Storage**: Your preferences, settings, and selected folder information are stored only in your browser's local storage and will be automatically removed when you uninstall the extension.
+
+- **Uploaded Content**: Images you upload through Paste2Drive are stored exclusively in your Google Drive account under your control. They are not stored anywhere else or retained by us in any form.
+
+- **Data Deletion**: You can delete your data in the following ways:
+  - Uninstall the extension to remove all locally stored preferences and settings
+  - Revoke the extension's access to your Google account at any time through [Google Account Security Settings](https://myaccount.google.com/permissions)
+  - Delete any files uploaded to your Google Drive through Google Drive's interface
+  - Use the "Clear Google authorization" option in the extension's settings to revoke access and clear stored account data
+
+- **Data Retention Period**: We do not retain any of your data outside of your browser. All Google user data accessed by the extension is only held temporarily in memory during active use of the extension and is discarded when the extension popup is closed or when you navigate away.
+
+- **No Backups**: We do not create or maintain backups of your data, as all data is stored either in your browser or in your Google Drive account.
+
+- **Automated Deletion**: If you haven't used the extension for 90 days, any cached authentication tokens will be automatically invalidated, requiring re-authentication upon next use.
 
 ## Data Sharing and Disclosure
 
