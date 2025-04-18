@@ -3,7 +3,7 @@
 A Chrome extension that makes it easy to upload clipboard images to Google Drive and insert shareable links in Google Workspace products.
 
 <p align="center">
-  <img src="images/icon128.png" alt="Paste2Drive Logo" width="128">
+  <img src="images/icon- readme.png" alt="Paste2Drive Logo" width="128">
 </p>
 
 ## Features
